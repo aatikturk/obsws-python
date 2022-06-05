@@ -13,18 +13,10 @@ class ReqClient(object):
     def GetVersion(self):
         """
         Gets data about the current plugin and RPC version.
-
-        Response Fields
-            "obsVersion"            : (String)
-            "obsWebSocketVersion"   : (String)
-            "rpcVersion"            : (Number)
-            "availableRequests"     : (List)
-            "supportedImageFormats" : (List)
-            "platform"              : (String)
-            "platformDescription"   : (String)
-        
+                
         :return: The version info as a dictionary
         :rtype:  dict
+
 
         """
         response = self.base_client.req('GetVersion')
@@ -34,21 +26,10 @@ class ReqClient(object):
         """
         Gets statistics about OBS, obs-websocket, and the current session.
 
-        Response Fields
-        "cpuUsage"                        : (Number)
-        "memoryUsage"                     : (Number)
-        "availableDiskSpace"              : (Number)
-        "activeFps"                       : (Number)
-        "averageFrameRenderTime"          : (Number)
-        "renderSkippedFrames"             : (Number)
-        "renderTotalFrames"               : (Number)
-        "outputSkippedFrames"             : (Number)
-        "outputTotalFrames"               : (Number)
-        "webSocketSessionIncomingMessages": (Number)
-        "webSocketSessionOutgoingMessages": (Number)
-
         :return: The stats info as a dictionary
         :rtype:  dict
+
+
         """
         response = self.base_client.req('GetStats')
         return response
@@ -62,12 +43,13 @@ class ReqClient(object):
         :return: empty response
         :rtype: str
 
+
         """
         req_data = eventData
         response = self.base_client.req('BroadcastCustomEvent', req_data)
         return response
 
-    def CallVendorRequest(self, vendorName, requestType, requestData):
+    def CallVendorRequest(self, vendorName, requestType, requestData=None):
         """
         Call a request registered to a vendor.
         
@@ -83,9 +65,11 @@ class ReqClient(object):
         :param requestType: The request type to call
         :type requestType: str
         :param requestData: Object containing appropriate request data
-        :type requestData: object
+        :type requestData: dict, optional
         :return: responseData
         :rtype: dict
+
+
         """
         response = self.base_client.req(req_type=requestType, req_data=requestData)
         return response
@@ -96,6 +80,8 @@ class ReqClient(object):
 
         :return: hotkeys
         :rtype: list[str]
+
+
         """
         response = self.base_client.req('GetHotkeyList')
         return response
@@ -107,6 +93,8 @@ class ReqClient(object):
 
         :param hotkeyName: Name of the hotkey to trigger
         :type hotkeyName: str
+
+
         """
         payload = {'hotkeyName': hotkeyName}
         response = self.base_client.req('TriggerHotkeyByName', payload)
@@ -128,6 +116,8 @@ class ReqClient(object):
         :type keyModifiers.alt: bool
         :param keyModifiers.cmd: Press CMD (Mac)
         :type keyModifiers.cmd: bool
+
+
         """
         payload = {
             'keyId': keyId,
@@ -151,6 +141,8 @@ class ReqClient(object):
         :type sleepMillis: int
         :param sleepFrames: Number of frames to sleep for (if SERIAL_FRAME mode)  0 <= sleepFrames <= 10000
         :type sleepFrames: int
+
+
         """
         payload = {
             'sleepMillis': sleepMillis,
@@ -170,6 +162,8 @@ class ReqClient(object):
         :type slotName: str
         :return: slotValue Value associated with the slot
         :rtype: any
+
+
         """
         payload = {
             'realm': realm,
@@ -189,6 +183,8 @@ class ReqClient(object):
         :type slotName: str
         :param slotValue: The value to apply to the slot
         :type slotValue: any
+
+
         """
         payload = {
             'realm': realm,
@@ -204,6 +200,8 @@ class ReqClient(object):
 
         :return: sceneCollections
         :rtype: list[str]
+
+
         """
         response = self.base_client.req('GetSceneCollectionList')
         return response
@@ -215,6 +213,8 @@ class ReqClient(object):
 
         :param name: Name of the scene collection to switch to
         :type name: str
+
+
         """
         payload = {'sceneCollectionName': name}
         response = self.base_client.req('SetCurrentSceneCollection', payload)
@@ -227,6 +227,8 @@ class ReqClient(object):
         
         :param name: Name for the new scene collection
         :type name: str
+
+
         """
         payload = {'sceneCollectionName': name}
         response = self.base_client.req('CreateSceneCollection', payload)
@@ -238,6 +240,8 @@ class ReqClient(object):
 
         :return: profiles (List of all profiles)
         :rtype: list[str]
+
+
         """
         response = self.base_client.req('GetProfileList')
         return response
@@ -248,6 +252,8 @@ class ReqClient(object):
 
         :param name: Name of the profile to switch to
         :type name: str
+
+
         """
         payload = {'profileName': name}
         response = self.base_client.req('SetCurrentProfile', payload)
@@ -259,6 +265,8 @@ class ReqClient(object):
 
         :param name: Name for the new profile
         :type name: str
+
+
         """
         payload = {'profileName': name}
         response = self.base_client.req('CreateProfile', payload)
@@ -271,6 +279,8 @@ class ReqClient(object):
 
         :param name: Name of the profile to remove
         :type name: str
+
+
         """
         payload = {'profileName': name}
         response = self.base_client.req('RemoveProfile', payload)
@@ -287,6 +297,8 @@ class ReqClient(object):
 
         :return: Value and default value for the parameter
         :rtype: str
+
+
         """
         payload = {
             'parameterCategory': category,
@@ -308,6 +320,8 @@ class ReqClient(object):
 
         :return: Value and default value for the parameter
         :rtype: str
+
+
         """
         payload = {
             'parameterCategory': category,
@@ -322,14 +336,8 @@ class ReqClient(object):
         Gets the current video settings.
         Note: To get the true FPS value, divide the FPS numerator by the FPS denominator. 
         Example: 60000/1001
+        
 
-        Response Fields
-            'fpsNumerator' 	    Number 	Numerator of the fractional FPS value
-            'fpsDenominator' 	Number 	Denominator of the fractional FPS value
-            'baseWidth' 	    Number 	Width of the base (canvas) resolution in pixels
-            'baseHeight' 	    Number 	Height of the base (canvas) resolution in pixels
-            'outputWidth' 	    Number 	Width of the output resolution in pixels
-            'outputHeight' 	    Number 	Height of the output resolution in pixels
         """
         response = self.base_client.req('GetVideoSettings')
         return response
@@ -352,6 +360,8 @@ class ReqClient(object):
         :type  out_width:    int
         :param out_height:   Height of the output resolution in pixels (>= 1, <= 4096)
         :type  out_height:   int
+
+
         """
         payload = {
             'fpsNumerator': numerator,
@@ -368,9 +378,7 @@ class ReqClient(object):
         """
         Gets the current stream service settings (stream destination).
 
-        Response Fields
-            streamServiceType       String  Stream service type, like rtmp_custom or rtmp_common
-            streamServiceSettings   Object  Stream service settings
+        
         """
         response = self.base_client.req('GetStreamServiceSettings')
         return response
@@ -385,6 +393,8 @@ class ReqClient(object):
         :type  ss_type:     string
         :param ss_setting:  Settings to apply to the service
         :type  ss_setting:  dict
+
+
         """
         payload = {
             'streamServiceType': ss_type,
@@ -400,9 +410,7 @@ class ReqClient(object):
         :param name: Name of the source to get the active state of
         :type name: str
 
-        Response Fields
-            videoActive     bool    Whether the source is showing in Program
-            videoShowing    bool    Whether the source is showing in the UI (Preview, Projection, Program)
+
         """
         payload = {'sourceName': name}
         response = self.base_client.req('GetSourceActive', payload)
@@ -428,8 +436,7 @@ class ReqClient(object):
         :param quality: Compression quality to use. 0 for high compression, 100 for uncompressed. -1 to use "default"
         :type quality:  int
 
-        Response Fields
-            'imageData' String  Base64-encoded screenshot
+
         """
         payload = {
             'sourceName': name,
@@ -462,9 +469,8 @@ class ReqClient(object):
         :type height:       int
         :param quality:     Compression quality to use. 0 for high compression, 100 for uncompressed. -1 to use "default"
         :type quality:      int
+        
 
-        Response Fields
-            'imageData' String  Base64-encoded screenshot
         """
         payload = {
             'sourceName': name,
@@ -480,11 +486,8 @@ class ReqClient(object):
     def GetSceneList(self):
         """
         Gets a list of all scenes in OBS.
+        
 
-        Response Fields
-            'currentProgramSceneName' 	String 	Current program scene
-            'currentPreviewSceneName' 	String 	Current preview scene. null if not in studio mode
-            'scenes'                    List<object> 	List of scenes
         """
         response = self.base_client.req('GetSceneList')
         return response
@@ -495,19 +498,17 @@ class ReqClient(object):
         Groups in OBS are actually scenes, 
         but renamed and modified. In obs-websocket, 
         we treat them as scenes where we can..
+        
 
-        Response Fields
-            groups 	    List<string> 	List of group names
         """
         response = self.base_client.req('GetSceneList')
         return response
 
     def GetCurrentProgramScene(self):
         """
-        Gets the current program scene
+        Gets the current program scene.
 
-        Response Fields
-            'currentProgramSceneName' 	String 	Current program scene
+
         """
         response = self.base_client.req('GetCurrentProgramScene')
         return response
@@ -518,6 +519,8 @@ class ReqClient(object):
 
         :param name: Scene to set as the current program scene
         :type name: str
+
+
         """
         payload = {'sceneName': name}
         response = self.base_client.req('SetCurrentProgramScene', payload)
@@ -526,9 +529,8 @@ class ReqClient(object):
     def GetCurrentPreviewScene(self):
         """
         Gets the current preview scene
+        
 
-        Response Fields
-            'currentPreviewSceneName' 	String 	Current preview scene
         """
         response = self.base_client.req('GetCurrentPreviewScene')
         return response
@@ -539,6 +541,8 @@ class ReqClient(object):
 
         :param name: Scene to set as the current preview scene
         :type name: str
+
+
         """
         payload = {'sceneName': name}
         response = self.base_client.req('SetCurrentPreviewScene', payload)
@@ -550,6 +554,8 @@ class ReqClient(object):
 
         :param name: Name for the new scene
         :type name: str
+
+
         """
         payload = {'sceneName': name }
         response = self.base_client.req('CreateScene', payload)
@@ -561,6 +567,8 @@ class ReqClient(object):
 
         :param name: Name of the scene to remove
         :type name: str
+
+
         """
         payload = {'sceneName': name }
         response = self.base_client.req('RemoveScene', payload)
@@ -574,6 +582,8 @@ class ReqClient(object):
         :type old_name: str
         :param new_name: New name for the scene
         :type new_name: str
+
+
         """
         payload = {
             'sceneName': old_name,
@@ -588,10 +598,8 @@ class ReqClient(object):
 
         :param name: Name of the scene
         :type name: str
+        
 
-        Response Fields
-            transitionName 	    String 	Name of the overridden scene transition, else null
-            transitionDuration 	Number 	Duration of the overridden scene transition, else null
         """
         payload = {'sceneName': name}
         response = self.base_client.req('GetSceneSceneTransitionOverride', payload)
@@ -607,6 +615,8 @@ class ReqClient(object):
         :type tr_name:      str
         :param tr_duration: Duration to use for any overridden transition. Specify null to remove (>= 50, <= 20000)
         :type tr_duration:  int
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -622,9 +632,8 @@ class ReqClient(object):
 
         :param kind: Restrict the list to only inputs of the specified kind
         :type kind: str
+        
 
-        Response Fields
-            inputs list <object>  List of inputs
         """
         payload = {'inputKind': kind}
         response = self.base_client.req('GetInputList', payload)
@@ -636,9 +645,8 @@ class ReqClient(object):
 
         :param unversioned: True == Return all kinds as unversioned, False == Return with version suffixes (if available)
         :type unversioned: bool
+        
 
-        Response Fields
-            inputKinds list <string> List of input kinds
         """
         payload = {'unversioned': unversioned}
         response = self.base_client.req('GetInputKindList', payload)
@@ -646,15 +654,9 @@ class ReqClient(object):
 
     def GetSpecialInputs(self):
         """
-        Gets the name of all special inputs
+        Gets the name of all special inputs.
 
-        Response Fields
-            desktop1 	String 	Name of the Desktop Audio input
-            desktop2 	String 	Name of the Desktop Audio 2 input
-            mic1 	    String 	Name of the Mic/Auxiliary Audio input
-            mic2 	    String 	Name of the Mic/Auxiliary Audio 2 input
-            mic3 	    String 	Name of the Mic/Auxiliary Audio 3 input
-            mic4 	    String 	Name of the Mic/Auxiliary Audio 4 input
+
         """
         response = self.base_client.req('GetSpecialInputs')
         return response
@@ -673,9 +675,8 @@ class ReqClient(object):
         :type inputSettings:        object
         :param sceneItemEnabled: 	Whether to set the created scene item to enabled or disabled
         :type sceneItemEnabled:     bool
+                
 
-        Response Fields
-            sceneItemId     Number      ID of the newly created scene item
         """
         payload = {
             'sceneName': sceneName,
@@ -693,6 +694,8 @@ class ReqClient(object):
 
         :param name: Name of the input to remove
         :type name: str
+
+
         """
         payload = {'inputName': name}
         response = self.base_client.req('RemoveInput', payload)
@@ -706,6 +709,8 @@ class ReqClient(object):
         :type old_name: str
         :param new_name: New name for the input
         :type new_name: str
+
+
         """
         payload = {
             'inputName': old_name,
@@ -720,9 +725,8 @@ class ReqClient(object):
 
         :param kind: Input kind to get the default settings for
         :type kind:  str
+        
 
-        Response Fields
-            defaultInputSettings    object  Object of default settings for the input kind
         """
         payload = {'inputKind': kind}
         response = self.base_client.req('GetInputDefaultSettings', payload)
@@ -736,10 +740,8 @@ class ReqClient(object):
 
         :param name: Input kind to get the default settings for
         :type name:  str
+        
 
-        Response Fields
-            inputSettings    object  Object of settings for the input
-            inputKind        String  The kind of the input
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputSettings', payload)
@@ -755,6 +757,7 @@ class ReqClient(object):
         :type settings:  dict
         :param overlay: True == apply the settings on top of existing ones, False == reset the input to its defaults, then apply settings.
         :type overlay:  bool
+        
 
         """
         payload = {
@@ -771,9 +774,8 @@ class ReqClient(object):
 
         :param name:    Name of input to get the mute state of
         :type name:     str
+        
 
-        Response Fields
-            inputMuted  Boolean Whether the input is muted
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputMute', payload)
@@ -787,6 +789,8 @@ class ReqClient(object):
         :type name:     str
         :param muted:   Whether to mute the input or not
         :type muted:    bool
+
+
         """
         payload = {
             'inputName': name,
@@ -801,9 +805,8 @@ class ReqClient(object):
 
         :param name:    Name of the input to toggle the mute state of
         :type name:     str
+        
 
-        Response Fields
-            inputMuted  Boolean Whether the input has been muted or unmuted
         """
         payload = {'inputName': name}
         response = self.base_client.req('ToggleInputMute', payload)
@@ -815,10 +818,8 @@ class ReqClient(object):
 
         :param name:    Name of the input to get the volume of
         :type name:     str
+        
 
-        Response Fields
-            inputVolumeMul  Number Volume setting in mul
-            inputVolumeDb   Number Volume setting in dB
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputVolume', payload)
@@ -834,6 +835,8 @@ class ReqClient(object):
         :type vol_mul:     int
         :param vol_db:     Volume setting in dB  (>= -100, <= 26)
         :type vol_db:      int
+
+
         """
         payload = {
             'inputName': name,
@@ -849,9 +852,8 @@ class ReqClient(object):
         
         :param name: Name of the input to get the audio balance of
         :type name:  str
+        
 
-        Response Fields
-            inputAudioBalance    Number     Audio balance value from 0.0-1.0
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputAudioBalance', payload)
@@ -865,6 +867,8 @@ class ReqClient(object):
         :type name:  str
         :param balance: New audio balance value (>= 0.0, <= 1.0)
         :type balance:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -879,9 +883,8 @@ class ReqClient(object):
         
         :param name: Name of the input to get the audio sync offset of
         :type name:  str
+        
 
-        Response Fields
-            inputAudioSyncOffset    Number     Audio sync offset in milliseconds
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputAudioOffset', payload)
@@ -895,6 +898,8 @@ class ReqClient(object):
         :type name:  str
         :param offset: New audio sync offset in milliseconds (>= -950, <= 20000)
         :type offset:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -908,19 +913,15 @@ class ReqClient(object):
         Gets the audio monitor type of an input.
 
         The available audio monitor types are:
-        
             OBS_MONITORING_TYPE_NONE
-        
             OBS_MONITORING_TYPE_MONITOR_ONLY
-        
             OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT
 
         
         :param name: Name of the input to get the audio monitor type of
         :type name:  str
+        
 
-        Response Fields
-            monitorType    String     Audio monitor type
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputAudioMonitorType', payload)
@@ -934,6 +935,8 @@ class ReqClient(object):
         :type name:  str
         :param mon_type:  	Audio monitor type
         :type mon_type:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -948,9 +951,8 @@ class ReqClient(object):
 
         :param name: Name of the input
         :type name:  str
+        
 
-        Response Fields
-            inputAudioTracks    Object     Object of audio tracks and associated enable states
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetInputAudioTracks', payload)
@@ -964,6 +966,8 @@ class ReqClient(object):
         :type name:  str
         :param track: Track settings to apply
         :type track:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -983,9 +987,8 @@ class ReqClient(object):
         :type input_name:   str
         :param prop_name:   Name of the list property to get the items of
         :type prop_name:    str
+        
 
-        Response Field
-            propertyItems   List<object> Array of items in the list property
         """
         payload = {
             'inputName': input_name,
@@ -1005,6 +1008,8 @@ class ReqClient(object):
         :type input_name:   str
         :param prop_name:   Name of the button property to press
         :type prop_name:    str
+
+
         """
         payload = {
             'inputName': input_name,
@@ -1017,9 +1022,8 @@ class ReqClient(object):
         """
         Gets an array of all available transition kinds.
         Similar to GetInputKindList
+        
 
-        Response Fields
-            transitionKinds    List  List of transition kinds
         """
         response = self.base_client.req('GetTransitionKindList')
         return response
@@ -1027,11 +1031,8 @@ class ReqClient(object):
     def GetSceneTransitionList(self):
         """
         Gets an array of all scene transitions in OBS.
+        
 
-        Response Fields
-            currentSceneTransitionName    String  Name of the current scene transition. Can be null
-            currentSceneTransitionKind    String  Kind of the current scene transition. Can be null
-            transitions                   List    List of transitions
         """
         response = self.base_client.req('GetSceneTransitionList')
         return response
@@ -1039,14 +1040,8 @@ class ReqClient(object):
     def GetCurrentSceneTransition(self):
         """
         Gets an array of all scene transitions in OBS.
+        
 
-        Response Fields
-            transitionName 	        String 	Name of the transition
-            transitionKind 	        String 	Kind of the transition
-            transitionFixed 	    Boolean Whether the transition uses a fixed (unconfigurable) duration
-            transitionDuration 	    Number 	Configured transition duration in milliseconds. null if transition is fixed
-            transitionConfigurable 	Boolean Whether the transition supports being configured
-            transitionSettings 	    Object 	Object of settings for the transition. null if transition is not configurable
         """
         response = self.base_client.req('GetCurrentSceneTransition')
         return response
@@ -1059,6 +1054,8 @@ class ReqClient(object):
 
         :param name: Name of the transition to make active
         :type name:  str
+
+
         """
         payload = {'transitionName': name}
         response = self.base_client.req('SetCurrentSceneTransition', payload)
@@ -1070,6 +1067,8 @@ class ReqClient(object):
 
         :param duration: Duration in milliseconds (>= 50, <= 20000)
         :type duration:  str
+
+
         """
         payload = {'transitionDuration': duration}
         response = self.base_client.req('SetCurrentSceneTransitionDuration', payload)
@@ -1083,6 +1082,8 @@ class ReqClient(object):
         :type settings:  dict
         :param overlay: Whether to overlay over the current settings or replace them
         :type overlay:  bool
+
+
         """
         payload = {
             'transitionSettings': settings,
@@ -1095,10 +1096,8 @@ class ReqClient(object):
         """
         Gets the cursor position of the current scene transition.
         Note: transitionCursor will return 1.0 when the transition is inactive.
+        
 
-        Response Fields
-        :param transitionCursor: Cursor position, between 0.0 and 1.0
-        :type transitionCursor:  float
         """
         response = self.base_client.req('GetCurrentSceneTransitionCursor')
         return response
@@ -1109,6 +1108,8 @@ class ReqClient(object):
         Same functionality as the Transition button in studio mode.
         Note: Studio mode should be active. if not throws an  
         RequestStatus::StudioModeNotActive (506) in response
+
+
         """
         response = self.base_client.req('TriggerStudioModeTransition')
         return response
@@ -1123,6 +1124,8 @@ class ReqClient(object):
         :type pos:  float
         :param release: Whether to release the TBar. Only set false if you know that you will be sending another position update
         :type release:  bool
+
+
         """
         payload = {
             'position': pos,
@@ -1138,9 +1141,7 @@ class ReqClient(object):
         :param name: Name of the source
         :type name:  str
         
-        Response Fields
-        :param filters: List of filters
-        :type filters:  list[dict]
+
         """
         payload = {'sourceName': name}
         response = self.base_client.req('GetSourceFilterList', payload)
@@ -1153,9 +1154,7 @@ class ReqClient(object):
         :param kind: Filter kind to get the default settings for
         :type kind:  str
         
-        Response Fields
-        :param defaultFilterSettings: Dictionary of default settings for the filter kind
-        :type defaultFilterSettings:  dict
+
         """
         payload = {'filterKind': kind}
         response = self.base_client.req('GetSourceFilterDefaultSettings', payload)
@@ -1173,6 +1172,8 @@ class ReqClient(object):
         :type filter_kind:  str
         :param filter_settings: Settings object to initialize the filter with
         :type filter_settings:  dict
+
+
         """
         payload = {
             'sourceName': source_name,
@@ -1191,6 +1192,8 @@ class ReqClient(object):
         :type source_name:  str
         :param filter_name: Name of the filter to remove
         :type filter_name:  str
+
+
         """
         payload = {
             'sourceName': source_name,
@@ -1210,6 +1213,7 @@ class ReqClient(object):
         :param new_filter_name: New name for the filter
         :type new_filter_name:  str
 
+
         """
         payload = {
             'sourceName': source_name,
@@ -1227,16 +1231,8 @@ class ReqClient(object):
         :type source_name:  str
         :param filter_name: Name of the filter
         :type filter_name:  str
+        
 
-        Response Fields
-        :param filterEnabled: Whether the filter is enabled
-        :type filterEnabled:  bool
-        :param filterIndex: Index of the filter in the list, beginning at 0
-        :type filterIndex:  int
-        :param filterKind: The kind of filter
-        :type filterKind:  str
-        :param filterSettings: Settings object associated with the filter
-        :type filterSettings:  dict
         """
         payload = {
             'sourceName': source_name,
@@ -1255,6 +1251,8 @@ class ReqClient(object):
         :type filter_name:  str
         :param filterIndex: New index position of the filter (>= 0)
         :type filterIndex:  int
+
+
         """
         payload = {
             'sourceName': source_name,
@@ -1276,6 +1274,8 @@ class ReqClient(object):
         :type settings:  dict
         :param overlay: True == apply the settings on top of existing ones, False == reset the input to its defaults, then apply settings.
         :type overlay:  bool
+
+
         """
         payload = {
             'sourceName': source_name,
@@ -1296,6 +1296,8 @@ class ReqClient(object):
         :type filter_name:  str
         :param enabled: New enable state of the filter
         :type enabled:  bool
+
+
         """
         payload = {
             'sourceName': source_name,
@@ -1311,10 +1313,8 @@ class ReqClient(object):
 
         :param name: Name of the scene to get the items of
         :type name: str
+        
 
-        Response Fields
-        :param sceneItems: List of scene items in the scene
-        :type sceneItems: list[dict]
         """
         payload = {'sceneName': name}
         response = self.base_client.req('GetSceneItemList', payload)
@@ -1326,10 +1326,8 @@ class ReqClient(object):
 
         :param name: Name of the group to get the items of
         :type name: str
+        
 
-        Response Fields
-        :param sceneItems: Array of scene items in the group
-        :type sceneItems: list[dict]
         """
         payload = {'sceneName': name}
         response = self.base_client.req('GetGroupItemList', payload)
@@ -1345,10 +1343,8 @@ class ReqClient(object):
         :type source_name: str
         :param offset:  	Number of matches to skip during search. >= 0 means first forward. -1 means last (top) item (>= -1)
         :type offset: int
+        
 
-        Response Fields
-        :param sceneItemId: Numeric ID of the scene item
-        :type sceneItemId: int
         """
         payload = {
             'sceneName': scene_name,
@@ -1369,10 +1365,8 @@ class ReqClient(object):
         :type source_name: str
         :param enabled: Enable state to apply to the scene item on creation
         :type enabled: bool
+        
 
-        Response Fields
-        :param sceneItemId: Numeric ID of the scene item
-        :type sceneItemId: int
         """
         payload = {
             'sceneName': scene_name,
@@ -1391,6 +1385,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item
         :type item_id: int
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -1410,10 +1406,8 @@ class ReqClient(object):
         :type item_id: int
         :param dest_scene_name: Name of the scene to create the duplicated item in
         :type dest_scene_name: str
+        
 
-        Response Fields
-        :param sceneItemId: Numeric ID of the scene item
-        :type sceneItemId: int
         """
         payload = {
             'sceneName': scene_name,
@@ -1432,10 +1426,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
+        
 
-        Response Fields
-        :param sceneItemTransform: Dictionary containing scene item transform info
-        :type sceneItemTransform: dict
         """
         payload = {
             'sceneName': scene_name,
@@ -1472,10 +1464,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
+        
 
-        Response Fields
-        :param sceneItemEnabled: Whether the scene item is enabled. true for enabled, false for disabled
-        :type sceneItemEnabled: bool
         """
         payload = {
             'sceneName': scene_name,
@@ -1495,6 +1485,8 @@ class ReqClient(object):
         :type item_id: int
         :param enabled: New enable state of the scene item
         :type enabled: bool
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -1513,10 +1505,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
+        
 
-        Response Fields
-        :param sceneItemLocked: Whether the scene item is locked. true for locked, false for unlocked
-        :type sceneItemLocked: bool
         """
         payload = {
             'sceneName': scene_name,
@@ -1536,6 +1526,8 @@ class ReqClient(object):
         :type item_id: int
         :param locked: New lock state of the scene item
         :type locked: bool
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -1555,10 +1547,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
+        
 
-        Response Fields
-        :param sceneItemIndex: Index position of the scene item
-        :type sceneItemIndex: int
         """
         payload = {
             'sceneName': scene_name,
@@ -1578,6 +1568,8 @@ class ReqClient(object):
         :type item_id: int
         :param item_index: New index position of the scene item (>= 0)
         :type item_index: int
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -1605,10 +1597,8 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
+        
 
-        Response Fields
-        :param sceneItemBlendMode: Current blend mode
-        :type sceneItemBlendMode: str
         """
         payload = {
             'sceneName': scene_name,
@@ -1628,6 +1618,8 @@ class ReqClient(object):
         :type item_id: int
         :param blend: New blend mode
         :type blend: str
+
+
         """
         payload = {
             'sceneName': scene_name,
@@ -1640,10 +1632,8 @@ class ReqClient(object):
     def GetVirtualCamStatus(self):
         """
         Gets the status of the virtualcam output.
+        
 
-        Response Fields
-        :param outputActive: Whether the output is active
-        :type outputActive:  bool
         """
         response = self.base_client.req('GetVirtualCamStatus')
         return response
@@ -1651,10 +1641,8 @@ class ReqClient(object):
     def ToggleVirtualCam(self):
         """
         Toggles the state of the virtualcam output.
+        
 
-        Response Fields
-        :param outputActive: Whether the output is active
-        :type outputActive:  bool
         """
         response = self.base_client.req('ToggleVirtualCam')
         return response
@@ -1662,6 +1650,8 @@ class ReqClient(object):
     def StartVirtualCam(self):
         """
         Starts the virtualcam output.
+
+
         """
         response = self.base_client.req('StartVirtualCam')
         return response
@@ -1669,6 +1659,8 @@ class ReqClient(object):
     def StopVirtualCam(self):
         """
         Stops the virtualcam output.
+
+
         """
         response = self.base_client.req('StopVirtualCam')
         return response
@@ -1677,9 +1669,7 @@ class ReqClient(object):
         """
         Gets the status of the replay buffer output.
 
-        Response Fields
-        :param outputActive: Whether the output is active
-        :type outputActive:  bool
+
         """
         response = self.base_client.req('GetReplayBufferStatus')
         return response
@@ -1687,10 +1677,8 @@ class ReqClient(object):
     def ToggleReplayBuffer(self):
         """
         Toggles the state of the replay buffer output.
+        
 
-        Response Fields
-        :param outputActive: Whether the output is active
-        :type outputActive:  bool
         """
         response = self.base_client.req('ToggleReplayBuffer')
         return response
@@ -1698,6 +1686,8 @@ class ReqClient(object):
     def StartReplayBuffer(self):
         """
         Starts the replay buffer output.
+
+
         """
         response = self.base_client.req('StartReplayBuffer')
         return response
@@ -1705,6 +1695,8 @@ class ReqClient(object):
     def StopReplayBuffer(self):
         """
         Stops the replay buffer output.
+
+
         """
         response = self.base_client.req('StopReplayBuffer')
         return response
@@ -1712,6 +1704,8 @@ class ReqClient(object):
     def SaveReplayBuffer(self):
         """
         Saves the contents of the replay buffer output.
+
+
         """
         response = self.base_client.req('SaveReplayBuffer')
         return response
@@ -1720,9 +1714,7 @@ class ReqClient(object):
         """
         Gets the filename of the last replay buffer save file.
         
-        Response Fields
-        :param savedReplayPath: File Path
-        :type savedReplayPath:  str
+
         """
         response = self.base_client.req('GetLastReplayBufferReplay')
         return response
@@ -1731,21 +1723,7 @@ class ReqClient(object):
         """
         Gets the status of the stream output.
         
-        Response Fields
-        :param outputActive:        Whether the output is active
-        :type outputActive:         bool
-        :param outputReconnecting:  Whether the output is currently reconnecting
-        :type outputReconnecting:   bool
-        :param outputTimecode:      Current formatted timecode string for the output
-        :type outputTimecode:       str
-        :param outputDuration:      Current duration in milliseconds for the output
-        :type outputDuration:       int
-        :param outputBytes:         Number of bytes sent by the output
-        :type outputBytes:          int
-        :param outputSkippedFrames: Number of frames skipped by the output's process
-        :type outputSkippedFrames:  int
-        :param outputTotalFrames:   Total number of frames delivered by the output's process
-        :type outputTotalFrames:    int
+
         """
         response = self.base_client.req('GetStreamStatus')
         return response
@@ -1754,9 +1732,7 @@ class ReqClient(object):
         """
         Toggles the status of the stream output.
         
-        Response Fields
-        :param outputActive: New state of the stream output
-        :type outputActive:  str
+
         """
         response = self.base_client.req('ToggleStream')
         return response
@@ -1764,6 +1740,8 @@ class ReqClient(object):
     def StartStream(self):
         """
         Starts the stream output.
+
+
         """
         response = self.base_client.req('StartStream')
         return response
@@ -1771,6 +1749,8 @@ class ReqClient(object):
     def StopStream(self):
         """
         Stops the stream output.
+
+
         """
         response = self.base_client.req('StopStream')
         return response
@@ -1781,6 +1761,8 @@ class ReqClient(object):
 
         :param caption: Caption text
         :type caption:  str
+
+
         """
         response = self.base_client.req('SendStreamCaption')
         return response
@@ -1789,17 +1771,7 @@ class ReqClient(object):
         """
         Gets the status of the record output.
         
-        Response Fields
-        :param outputActive:        Whether the output is active
-        :type outputActive:         bool
-        :param ouputPaused:         Whether the output is paused
-        :type ouputPaused:          bool
-        :param outputTimecode:      Current formatted timecode string for the output
-        :type outputTimecode:       str
-        :param outputDuration:      Current duration in milliseconds for the output
-        :type outputDuration:       int
-        :param outputBytes:         Number of bytes sent by the output
-        :type outputBytes:          int
+
         """
         response = self.base_client.req('GetRecordStatus')
         return response
@@ -1807,6 +1779,8 @@ class ReqClient(object):
     def ToggleRecord(self):
         """
         Toggles the status of the record output.
+
+
         """
         response = self.base_client.req('ToggleRecord')
         return response
@@ -1814,6 +1788,8 @@ class ReqClient(object):
     def StartRecord(self):
         """
         Starts the record output.
+
+
         """
         response = self.base_client.req('StartRecord')
         return response
@@ -1821,6 +1797,8 @@ class ReqClient(object):
     def StopRecord(self):
         """
         Stops the record output.
+
+
         """
         response = self.base_client.req('StopRecord')
         return response
@@ -1828,6 +1806,8 @@ class ReqClient(object):
     def ToggleRecordPause(self):
         """
         Toggles pause on the record output.
+
+
         """
         response = self.base_client.req('ToggleRecordPause')
         return response
@@ -1835,6 +1815,8 @@ class ReqClient(object):
     def PauseRecord(self):
         """
         Pauses the record output.
+
+
         """
         response = self.base_client.req('PauseRecord')
         return response
@@ -1842,6 +1824,8 @@ class ReqClient(object):
     def ResumeRecord(self):
         """
         Resumes the record output.
+
+
         """
         response = self.base_client.req('ResumeRecord')
         return response
@@ -1851,33 +1835,19 @@ class ReqClient(object):
         Gets the status of a media input.
 
         Media States:
-        
             OBS_MEDIA_STATE_NONE
-        
             OBS_MEDIA_STATE_PLAYING
-        
             OBS_MEDIA_STATE_OPENING
-        
             OBS_MEDIA_STATE_BUFFERING
-        
             OBS_MEDIA_STATE_PAUSED
-        
             OBS_MEDIA_STATE_STOPPED
-        
             OBS_MEDIA_STATE_ENDED
-        
             OBS_MEDIA_STATE_ERROR
 
         :param name: Name of the media input
         :type name:  str
 
-        Response Fields
-        :param mediaState:      Name of the media input
-        :type mediaState:       int
-        :param mediaDuration:   Name of the media input
-        :type mediaDuration:    int
-        :param mediaCursor:     Name of the media input
-        :type mediaCursor:      int
+
         """
         payload = {'inputName': name}
         response = self.base_client.req('GetMediaInputStatus', payload)
@@ -1892,6 +1862,8 @@ class ReqClient(object):
         :type name:  str
         :param cursor: New cursor position to set (>= 0)
         :type cursor:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -1909,6 +1881,8 @@ class ReqClient(object):
         :type name:  str
         :param offset: Value to offset the current cursor position by
         :type offset:  int
+
+
         """
         payload = {
             'inputName': name,
@@ -1925,6 +1899,8 @@ class ReqClient(object):
         :type name:  str
         :param action: Identifier of the ObsMediaInputAction enum
         :type action:  str
+
+
         """
         payload = {
             'inputName': name,
@@ -1936,10 +1912,8 @@ class ReqClient(object):
     def GetStudioModeEnabled(self):
         """
         Gets whether studio is enabled.
+        
 
-        Response Fields
-        :param studioModeEnabled:      Whether studio mode is enabled
-        :type studioModeEnabled:       bool
         """
         response = self.base_client.req('GetStudioModeEnabled')
         return response
@@ -1950,6 +1924,8 @@ class ReqClient(object):
 
         :param enabled:      True == Enabled, False == Disabled
         :type enabled:       bool
+
+
         """
         payload = {'studioModeEnabled': enabled}
         response = self.base_client.req('SetStudioModeEnabled', payload)
@@ -1961,6 +1937,8 @@ class ReqClient(object):
 
         :param name:      Name of the input to open the dialog of
         :type name:       str
+
+
         """
         payload = {'inputName': name}
         response = self.base_client.req('OpenInputPropertiesDialog', payload)
@@ -1972,6 +1950,8 @@ class ReqClient(object):
 
         :param name:      Name of the input to open the dialog of
         :type name:       str
+
+
         """
         payload = {'inputName': name}
         response = self.base_client.req('OpenInputFiltersDialog', payload)
@@ -1983,6 +1963,8 @@ class ReqClient(object):
 
         :param name:      Name of the input to open the dialog of
         :type name:       str
+
+
         """
         payload = {'inputName': name}
         response = self.base_client.req('OpenInputInteractDialog', payload)
@@ -1991,10 +1973,8 @@ class ReqClient(object):
     def GetMonitorList(self, name):
         """
         Gets a list of connected monitors and information about them.
+        
 
-        Response Fields
-        :param monitors:      a list of detected monitors with some information
-        :type monitors:       list
         """
         response = self.base_client.req('GetMonitorList')
         return response
