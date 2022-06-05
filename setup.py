@@ -35,6 +35,5 @@ setup(name=PACKAGE_NAME,
       url=URL,
       install_requires=INSTALL_REQUIRES,
       python_requires=PYTHON_REQUIRES,
-      py_modules = ['baseclient', 'reqs'],
-      packages=['obsstudio_sdk']
+      packages=find_packages()
       )

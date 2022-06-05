@@ -1,4 +1,4 @@
-import baseclient
+from . import baseclient
 
 """
 A class to interact with obs-websocket requests
