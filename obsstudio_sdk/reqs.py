@@ -246,7 +246,7 @@ class ReqClient(object):
         response = self.base_client.req('GetProfileList')
         return response
 
-    def SetCurrentProfie(self, name):
+    def SetCurrentProfile(self, name):
         """
         Switches to a profile
 
@@ -259,7 +259,7 @@ class ReqClient(object):
         response = self.base_client.req('SetCurrentProfile', payload)
         return response
     
-    def CreateProfle(self, name):
+    def CreateProfile(self, name):
         """
         Creates a new profile, switching to it in the process
 
@@ -272,7 +272,7 @@ class ReqClient(object):
         response = self.base_client.req('CreateProfile', payload)
         return response
 
-    def RemoveProfle(self, name):
+    def RemoveProfile(self, name):
         """
         Removes a profile. If the current profile is chosen, 
         it will change to a different profile first.
