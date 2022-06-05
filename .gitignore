@@ -2,3 +2,4 @@ __pycache__
 obsstudio_sdk.egg-info
 dist
 docs
+setup.py
