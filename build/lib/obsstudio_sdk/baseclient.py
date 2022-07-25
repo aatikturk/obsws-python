@@ -9,17 +9,15 @@ import websocket
 
 
 class ObsClient(object):
-    def __init__(self, **kwargs):
-        defaultkwargs = {key: None for key in ["host", "port", "password"]}
-        kwargs = defaultkwargs | kwargs
-        for attr, val in kwargs.items():
-            setattr(self, attr, val)
+    def __init__(self, host=None, port=None, password=None):
+        self.host = host
+        self.port = port
+        self.password = password
         if not (self.host and self.port and self.password):
             conn = self._conn_from_toml()
             self.host = conn["host"]
             self.port = conn["port"]
             self.password = conn["password"]
-
         self.ws = websocket.WebSocket()
         self.ws.connect(f"ws://{self.host}:{self.port}")
         self.server_hello = json.loads(self.ws.recv())

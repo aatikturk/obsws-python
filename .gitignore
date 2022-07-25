@@ -3,3 +3,7 @@ obsstudio_sdk.egg-info
 dist
 docs
 setup.py
+
+venv
+quick.py
+config.toml
