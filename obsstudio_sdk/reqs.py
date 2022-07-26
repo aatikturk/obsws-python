@@ -1,6 +1,3 @@
-import time
-from re import S
-
 from .baseclient import ObsClient
 from .error import OBSSDKError
 
