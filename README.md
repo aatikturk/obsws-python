@@ -6,6 +6,12 @@ This is a wrapper around OBS Websocket.
 Not all endpoints in the official documentation are implemented. But all endpoints in the Requests section is implemented. You can find the relevant document using below link.
 [obs-websocket github page](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#Requests)
 
+## Requirements
+
+-   [OBS Studio](https://obsproject.com/)
+-   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
+-   Python 3.11 or greater
+
 ### How to install using pip
 
 ```

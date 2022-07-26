@@ -1,4 +1,5 @@
 import re
+from typing import Callable, Iterable, Union
 
 
 class Callback:
@@ -28,16 +29,16 @@ class Callback:
         for fn in self._callbacks:
             if fn.__name__ == self.to_snake_case(event):
                 if "eventData" in data:
-                    fn(data["eventData"])
+                    fn(event, data["eventData"])
                 else:
-                    fn()
+                    fn(event)
 
-    def register(self, fns):
+    def register(self, fns: Union[Iterable, Callable]):
         """registers callback functions"""
 
         try:
-            iter(fns)
-            for fn in fns:
+            iterator = iter(fns)
+            for fn in iterator:
                 if fn not in self._callbacks:
                     self._callbacks.append(fn)
         except TypeError as e:
