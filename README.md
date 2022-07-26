@@ -39,10 +39,10 @@ Otherwise:
 Example `__main__.py`
 
 ```python
-from obsstudio_sdk.reqs import ReqClient
+import obsstudio_sdk as obs
 
 # pass conn info if not in config.toml
-cl = ReqClient('localhost', 4455, 'mystrongpass')
+cl = obs.ReqClient('localhost', 4455, 'mystrongpass')
 
 # Toggle the mute state of your Mic input
 cl.toggle_input_mute('Mic/Aux')
