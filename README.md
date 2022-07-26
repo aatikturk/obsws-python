@@ -39,18 +39,14 @@ Otherwise:
     port: port to access server
     password: obs websocket server password
 
-```
->>>from obsstudio_sdk.reqs import ReqClient
->>>
->>>client = ReqClient('192.168.1.1', 4444, 'somepassword')
-```
+Example `__main__.py`
 
-Now you can make calls to OBS
+```python
+from obsstudio_sdk.reqs import ReqClient
 
-Example: Toggle the mute state of your Mic input
+# pass conn info if not in config.toml
+cl = ReqClient('localhost', 4455, 'mystrongpass')
 
-```
->>>cl.ToggleInputMute('Mic/Aux')
->>>
-
+# Toggle the mute state of your Mic input
+cl.ToggleInputMute('Mic/Aux')
 ```
