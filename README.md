@@ -30,9 +30,7 @@ It should be placed next to your `__main__.py` file.
 
 #### Otherwise:
 
-Import and start using
-
-    Parameters are as follows:
+Import and start using, parameters are as follows:
 
 -   `host`: obs websocket server
 -   `port`: port to access server
