@@ -17,7 +17,7 @@ pip install obsstudio-sdk
 
 ### How to Use
 
--   Load connection info from toml config. A valid `config.toml` might look like this:
+Load connection info from toml config. A valid `config.toml` might look like this:
 
 ```toml
 [connection]
@@ -28,13 +28,15 @@ password = "mystrongpass"
 
 It should be placed next to your `__main__.py` file.
 
-Otherwise:
+#### Otherwise:
 
--   Import and start using
+Import and start using
+
     Parameters are as follows:
-    host: obs websocket server
-    port: port to access server
-    password: obs websocket server password
+
+-   `host`: obs websocket server
+-   `port`: port to access server
+-   `password`: obs websocket server password
 
 Example `__main__.py`
 
