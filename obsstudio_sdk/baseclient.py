@@ -1,11 +1,18 @@
 import base64
 import hashlib
 import json
+from enum import IntEnum
 from pathlib import Path
 from random import randint
 
 import tomllib
 import websocket
+
+Subs = IntEnum(
+    "Subs",
+    "general config scenes inputs transitions filters outputs sceneitems mediainputs vendors ui",
+    start=0,
+)
 
 
 class ObsClient(object):
@@ -49,7 +56,28 @@ class ObsClient(object):
             ).digest()
         ).decode()
 
-        payload = {"op": 1, "d": {"rpcVersion": 1, "authentication": auth}}
+        all_non_high_volume = (
+            (1 << Subs.general)
+            | (1 << Subs.config)
+            | (1 << Subs.scenes)
+            | (1 << Subs.inputs)
+            | (1 << Subs.transitions)
+            | (1 << Subs.filters)
+            | (1 << Subs.outputs)
+            | (1 << Subs.sceneitems)
+            | (1 << Subs.mediainputs)
+            | (1 << Subs.vendors)
+            | (1 << Subs.ui)
+        )
+
+        payload = {
+            "op": 1,
+            "d": {
+                "rpcVersion": 1,
+                "authentication": auth,
+                "eventSubscriptions": (all_non_high_volume),
+            },
+        }
 
         self.ws.send(json.dumps(payload))
         return self.ws.recv()
