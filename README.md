@@ -1,10 +1,7 @@
-# obs_sdk
-
-### A Python SDK for OBS Studio WebSocket v5.0
+# A Python SDK for OBS Studio WebSocket v5.0
 
 This is a wrapper around OBS Websocket.
-Not all endpoints in the official documentation are implemented. But all endpoints in the Requests section is implemented. You can find the relevant document using below link.
-[obs-websocket github page](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#Requests)
+Not all endpoints in the official documentation are implemented.
 
 ## Requirements
 
@@ -50,3 +47,7 @@ cl = ReqClient('localhost', 4455, 'mystrongpass')
 # Toggle the mute state of your Mic input
 cl.toggle_input_mute('Mic/Aux')
 ```
+
+### Official Documentation
+
+-   [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
