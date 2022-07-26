@@ -1,4 +1,8 @@
+import time
+from re import S
+
 from .baseclient import ObsClient
+from .error import OBSSDKError
 
 """
 A class to interact with obs-websocket requests
@@ -12,7 +16,23 @@ class ReqClient(object):
         self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()
 
-    def GetVersion(self):
+    def getter(self, param):
+        response = self.base_client.req(param)
+        return response["responseData"]
+
+    def setter(self, param, data):
+        response = self.base_client.req(param, data)
+        if not response["requestStatus"]["result"]:
+            error = (
+                f"Request {response['requestType']} returned code {response['requestStatus']['code']}",
+            )
+            if "comment" in response["requestStatus"]:
+                error += (f"With message: {response['requestStatus']['comment']}",)
+            raise OBSSDKError("\n".join(error))
+
+    action = setter
+
+    def get_version(self):
         """
         Gets data about the current plugin and RPC version.
 
@@ -21,10 +41,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetVersion")
-        return response
+        return self.getter("GetVersion")
 
-    def GetStats(self):
+    def get_stats(self):
         """
         Gets statistics about OBS, obs-websocket, and the current session.
 
@@ -33,10 +52,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetStats")
-        return response
+        return self.getter("GetStats")
 
-    def BroadcastCustomEvent(self, eventData):
+    def broadcast_custom_event(self, eventData):
         """
         Broadcasts a CustomEvent to all WebSocket clients. Receivers are clients which are identified and subscribed.
 
@@ -47,11 +65,9 @@ class ReqClient(object):
 
 
         """
-        req_data = eventData
-        response = self.base_client.req("BroadcastCustomEvent", req_data)
-        return response
+        self.action("BroadcastCustomEvent", eventData)
 
-    def CallVendorRequest(self, vendorName, requestType, requestData=None):
+    def call_vendor_request(self, vendorName, requestType, requestData=None):
         """
         Call a request registered to a vendor.
 
@@ -76,7 +92,7 @@ class ReqClient(object):
         response = self.base_client.req(req_type=requestType, req_data=requestData)
         return response
 
-    def GetHotkeyList(self):
+    def get_hot_key_list(self):
         """
         Gets an array of all hotkey names in OBS
 
@@ -85,10 +101,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetHotkeyList")
-        return response
+        return self.getter("GetHotkeyList")
 
-    def TriggerHotkeyByName(self, hotkeyName):
+    def trigger_hot_key_by_name(self, hotkeyName):
         """
         Triggers a hotkey using its name. For hotkey names
         See GetHotkeyList
@@ -99,10 +114,9 @@ class ReqClient(object):
 
         """
         payload = {"hotkeyName": hotkeyName}
-        response = self.base_client.req("TriggerHotkeyByName", payload)
-        return response
+        self.action("TriggerHotkeyByName", payload)
 
-    def TriggerHotkeyByKeySequence(
+    def trigger_hot_key_by_key_sequence(
         self, keyId, pressShift, pressCtrl, pressAlt, pressCmd
     ):
         """
@@ -136,7 +150,7 @@ class ReqClient(object):
         response = self.base_client.req("TriggerHotkeyByKeySequence", payload)
         return response
 
-    def Sleep(self, sleepMillis=None, sleepFrames=None):
+    def sleep(self, sleepMillis=None, sleepFrames=None):
         """
         Sleeps for a time duration or number of frames.
         Only available in request batches with types SERIAL_REALTIME or SERIAL_FRAME
@@ -149,10 +163,9 @@ class ReqClient(object):
 
         """
         payload = {"sleepMillis": sleepMillis, "sleepFrames": sleepFrames}
-        response = self.base_client.req("Sleep", payload)
-        return response
+        self.action("Sleep", payload)
 
-    def GetPersistentData(self, realm, slotName):
+    def get_persistent_data(self, realm, slotName):
         """
         Gets the value of a "slot" from the selected persistent data realm.
 
@@ -170,7 +183,7 @@ class ReqClient(object):
         response = self.base_client.req("GetPersistentData", payload)
         return response
 
-    def SetPersistentData(self, realm, slotName, slotValue):
+    def set_persistent_data(self, realm, slotName, slotValue):
         """
         Sets the value of a "slot" from the selected persistent data realm.
 
@@ -188,7 +201,7 @@ class ReqClient(object):
         response = self.base_client.req("SetPersistentData", payload)
         return response
 
-    def GetSceneCollectionList(self):
+    def get_scene_collection_list(self):
         """
         Gets an array of all scene collections
 
@@ -197,13 +210,11 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetSceneCollectionList")
-        return response
+        return self.getter("GetSceneCollectionList")
 
-    def SetCurrentSceneCollection(self, name):
+    def set_current_scene_collection(self, name):
         """
-        Creates a new scene collection, switching to it in the process
-        Note: This will block until the collection has finished changing
+        Switches to a scene collection.
 
         :param name: Name of the scene collection to switch to
         :type name: str
@@ -211,10 +222,9 @@ class ReqClient(object):
 
         """
         payload = {"sceneCollectionName": name}
-        response = self.base_client.req("SetCurrentSceneCollection", payload)
-        return response
+        self.setter("SetCurrentSceneCollection", payload)
 
-    def CreateSceneCollection(self, name):
+    def create_scene_collection(self, name):
         """
         Creates a new scene collection, switching to it in the process.
         Note: This will block until the collection has finished changing.
@@ -225,10 +235,9 @@ class ReqClient(object):
 
         """
         payload = {"sceneCollectionName": name}
-        response = self.base_client.req("CreateSceneCollection", payload)
-        return response
+        self.action("CreateSceneCollection", payload)
 
-    def GetProfileList(self):
+    def get_profile_list(self):
         """
         Gets a list of all profiles
 
@@ -237,10 +246,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetProfileList")
-        return response
+        return self.getter("GetProfileList")
 
-    def SetCurrentProfile(self, name):
+    def set_current_profile(self, name):
         """
         Switches to a profile
 
@@ -250,10 +258,9 @@ class ReqClient(object):
 
         """
         payload = {"profileName": name}
-        response = self.base_client.req("SetCurrentProfile", payload)
-        return response
+        self.setter("SetCurrentProfile", payload)
 
-    def CreateProfile(self, name):
+    def create_profile(self, name):
         """
         Creates a new profile, switching to it in the process
 
@@ -266,7 +273,7 @@ class ReqClient(object):
         response = self.base_client.req("CreateProfile", payload)
         return response
 
-    def RemoveProfile(self, name):
+    def remove_profile(self, name):
         """
         Removes a profile. If the current profile is chosen,
         it will change to a different profile first.
@@ -280,9 +287,9 @@ class ReqClient(object):
         response = self.base_client.req("RemoveProfile", payload)
         return response
 
-    def GetProfileParameter(self, category, name):
+    def get_profile_parameter(self, category, name):
         """
-        Gets a parameter from the current profile's configuration..
+        Gets a parameter from the current profile's configuration.
 
         :param category: Category of the parameter to get
         :type category: str
@@ -298,9 +305,9 @@ class ReqClient(object):
         response = self.base_client.req("GetProfileParameter", payload)
         return response
 
-    def SetProfileParameter(self, category, name, value):
+    def set_profile_parameter(self, category, name, value):
         """
-        Gets a parameter from the current profile's configuration..
+        Sets the value of a parameter in the current profile's configuration.
 
         :param category: Category of the parameter to set
         :type category: str
@@ -322,7 +329,7 @@ class ReqClient(object):
         response = self.base_client.req("SetProfileParameter", payload)
         return response
 
-    def GetVideoSettings(self):
+    def get_video_settings(self):
         """
         Gets the current video settings.
         Note: To get the true FPS value, divide the FPS numerator by the FPS denominator.
@@ -333,7 +340,7 @@ class ReqClient(object):
         response = self.base_client.req("GetVideoSettings")
         return response
 
-    def SetVideoSettings(
+    def set_video_settings(
         self, numerator, denominator, base_width, base_height, out_width, out_height
     ):
         """
@@ -367,7 +374,7 @@ class ReqClient(object):
         response = self.base_client.req("SetVideoSettings", payload)
         return response
 
-    def GetStreamServiceSettings(self):
+    def get_stream_service_settings(self):
         """
         Gets the current stream service settings (stream destination).
 
@@ -376,7 +383,7 @@ class ReqClient(object):
         response = self.base_client.req("GetStreamServiceSettings")
         return response
 
-    def SetStreamServiceSettings(self, ss_type, ss_settings):
+    def set_stream_service_settings(self, ss_type, ss_settings):
         """
         Sets the current stream service settings (stream destination).
         Note: Simple RTMP settings can be set with type rtmp_custom
@@ -396,7 +403,7 @@ class ReqClient(object):
         response = self.base_client.req("SetStreamServiceSettings", payload)
         return response
 
-    def GetSourceActive(self, name):
+    def get_source_active(self, name):
         """
         Gets the active and show state of a source
 
@@ -409,7 +416,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSourceActive", payload)
         return response
 
-    def GetSourceScreenshot(self, name, img_format, width, height, quality):
+    def get_source_screenshot(self, name, img_format, width, height, quality):
         """
         Gets a Base64-encoded screenshot of a source.
         The imageWidth and imageHeight parameters are
@@ -441,7 +448,9 @@ class ReqClient(object):
         response = self.base_client.req("GetSourceScreenshot", payload)
         return response
 
-    def SaveSourceScreenshot(self, name, img_format, file_path, width, height, quality):
+    def save_source_screenshot(
+        self, name, img_format, file_path, width, height, quality
+    ):
         """
         Saves a Base64-encoded screenshot of a source.
         The imageWidth and imageHeight parameters are
@@ -476,16 +485,15 @@ class ReqClient(object):
         response = self.base_client.req("SaveSourceScreenshot", payload)
         return response
 
-    def GetSceneList(self):
+    def get_scene_list(self):
         """
         Gets a list of all scenes in OBS.
 
 
         """
-        response = self.base_client.req("GetSceneList")
-        return response
+        return self.getter("GetSceneList")
 
-    def GetGroupList(self):
+    def get_group_list(self):
         """
         Gets a list of all groups in OBS.
         Groups in OBS are actually scenes,
@@ -497,16 +505,15 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneList")
         return response
 
-    def GetCurrentProgramScene(self):
+    def get_current_program_scene(self):
         """
         Gets the current program scene.
 
 
         """
-        response = self.base_client.req("GetCurrentProgramScene")
-        return response
+        return self.getter("GetCurrentProgramScene")
 
-    def SetCurrentProgramScene(self, name):
+    def set_current_program_scene(self, name):
         """
         Sets the current program scene
 
@@ -516,10 +523,9 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("SetCurrentProgramScene", payload)
-        return response
+        self.setter("SetCurrentProgramScene", payload)
 
-    def GetCurrentPreviewScene(self):
+    def get_current_preview_scene(self):
         """
         Gets the current preview scene
 
@@ -528,7 +534,7 @@ class ReqClient(object):
         response = self.base_client.req("GetCurrentPreviewScene")
         return response
 
-    def SetCurrentPreviewScene(self, name):
+    def set_current_preview_scene(self, name):
         """
         Sets the current program scene
 
@@ -541,7 +547,7 @@ class ReqClient(object):
         response = self.base_client.req("SetCurrentPreviewScene", payload)
         return response
 
-    def CreateScene(self, name):
+    def create_scene(self, name):
         """
         Creates a new scene in OBS.
 
@@ -554,7 +560,7 @@ class ReqClient(object):
         response = self.base_client.req("CreateScene", payload)
         return response
 
-    def RemoveScene(self, name):
+    def remove_scene(self, name):
         """
         Removes a scene from OBS
 
@@ -567,7 +573,7 @@ class ReqClient(object):
         response = self.base_client.req("RemoveScene", payload)
         return response
 
-    def SetSceneName(self, old_name, new_name):
+    def set_scene_name(self, old_name, new_name):
         """
         Sets the name of a scene (rename).
 
@@ -582,7 +588,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneName", payload)
         return response
 
-    def GetSceneSceneTransitionOverride(self, name):
+    def get_scene_scene_transition_override(self, name):
         """
         Gets the scene transition overridden for a scene.
 
@@ -595,7 +601,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneSceneTransitionOverride", payload)
         return response
 
-    def SetSceneSceneTransitionOverride(self, scene_name, tr_name, tr_duration):
+    def set_scene_scene_transition_override(self, scene_name, tr_name, tr_duration):
         """
         Gets the scene transition overridden for a scene.
 
@@ -616,7 +622,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneSceneTransitionOverride", payload)
         return response
 
-    def GetInputList(self, kind):
+    def get_input_list(self, kind):
         """
         Gets a list of all inputs in OBS.
 
@@ -629,7 +635,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputList", payload)
         return response
 
-    def GetInputKindList(self, unversioned):
+    def get_input_kind_list(self, unversioned):
         """
         Gets a list of all available input kinds in OBS.
 
@@ -642,7 +648,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputKindList", payload)
         return response
 
-    def GetSpecialInputs(self):
+    def get_special_inputs(self):
         """
         Gets the name of all special inputs.
 
@@ -651,7 +657,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSpecialInputs")
         return response
 
-    def CreateInput(
+    def create_input(
         self, sceneName, inputName, inputKind, inputSettings, sceneItemEnabled
     ):
         """
@@ -680,7 +686,7 @@ class ReqClient(object):
         response = self.base_client.req("CreateInput", payload)
         return response
 
-    def RemoveInput(self, name):
+    def remove_input(self, name):
         """
         Removes an existing input
 
@@ -693,7 +699,7 @@ class ReqClient(object):
         response = self.base_client.req("RemoveInput", payload)
         return response
 
-    def SetInputName(self, old_name, new_name):
+    def set_input_name(self, old_name, new_name):
         """
         Sets the name of an input (rename).
 
@@ -708,7 +714,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputName", payload)
         return response
 
-    def GetInputDefaultSettings(self, kind):
+    def get_input_default_settings(self, kind):
         """
         Gets the default settings for an input kind.
 
@@ -721,7 +727,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputDefaultSettings", payload)
         return response
 
-    def GetInputSettings(self, name):
+    def get_input_settings(self, name):
         """
         Gets the settings of an input.
         Note: Does not include defaults. To create the entire settings object,
@@ -736,7 +742,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputSettings", payload)
         return response
 
-    def SetInputSettings(self, name, settings, overlay):
+    def set_input_settings(self, name, settings, overlay):
         """
         Sets the settings of an input.
 
@@ -753,7 +759,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputSettings", payload)
         return response
 
-    def GetInputMute(self, name):
+    def get_input_mute(self, name):
         """
         Gets the audio mute state of an input
 
@@ -766,7 +772,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputMute", payload)
         return response
 
-    def SetInputMute(self, name, muted):
+    def set_input_mute(self, name, muted):
         """
         Sets the audio mute state of an input.
 
@@ -781,7 +787,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputMute", payload)
         return response
 
-    def ToggleInputMute(self, name):
+    def toggle_input_mute(self, name):
         """
         Toggles the audio mute state of an input.
 
@@ -794,7 +800,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleInputMute", payload)
         return response
 
-    def GetInputVolume(self, name):
+    def get_input_volume(self, name):
         """
         Gets the current volume setting of an input.
 
@@ -807,7 +813,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputVolume", payload)
         return response
 
-    def SetInputVolume(self, name, vol_mul=None, vol_db=None):
+    def set_input_volume(self, name, vol_mul=None, vol_db=None):
         """
         Sets the volume setting of an input.
 
@@ -828,7 +834,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputVolume", payload)
         return response
 
-    def GetInputAudioBalance(self, name):
+    def get_input_audio_balance(self, name):
         """
         Gets the audio balance of an input.
 
@@ -841,7 +847,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputAudioBalance", payload)
         return response
 
-    def SetInputAudioBalance(self, name, balance):
+    def set_input_audio_balance(self, name, balance):
         """
         Sets the audio balance of an input.
 
@@ -856,7 +862,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputAudioBalance", payload)
         return response
 
-    def GetInputAudioOffset(self, name):
+    def get_input_audio_sync_offset(self, name):
         """
         Gets the audio sync offset of an input.
 
@@ -866,10 +872,10 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputAudioOffset", payload)
+        response = self.base_client.req("GetInputAudioSyncOffset", payload)
         return response
 
-    def SetInputAudioSyncOffset(self, name, offset):
+    def set_input_audio_sync_offset(self, name, offset):
         """
         Sets the audio sync offset of an input.
 
@@ -884,7 +890,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputAudioSyncOffset", payload)
         return response
 
-    def GetInputAudioMonitorType(self, name):
+    def get_input_audio_monitor_type(self, name):
         """
         Gets the audio monitor type of an input.
 
@@ -903,7 +909,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputAudioMonitorType", payload)
         return response
 
-    def SetInputAudioMonitorType(self, name, mon_type):
+    def set_input_audio_monitor_type(self, name, mon_type):
         """
         Sets the audio monitor type of an input.
 
@@ -918,7 +924,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputAudioMonitorType", payload)
         return response
 
-    def GetInputAudioTracks(self, name):
+    def get_input_audio_tracks(self, name):
         """
         Gets the enable state of all audio tracks of an input.
 
@@ -931,9 +937,9 @@ class ReqClient(object):
         response = self.base_client.req("GetInputAudioTracks", payload)
         return response
 
-    def SetInputAudioTracks(self, name, track):
+    def set_input_audio_tracks(self, name, track):
         """
-        Sets the audio monitor type of an input.
+        Sets the enable state of audio tracks of an input.
 
         :param name: Name of the input
         :type name:  str
@@ -946,7 +952,7 @@ class ReqClient(object):
         response = self.base_client.req("SetInputAudioTracks", payload)
         return response
 
-    def GetInputPropertiesListPropertyItems(self, input_name, prop_name):
+    def get_input_properties_list_property_items(self, input_name, prop_name):
         """
         Gets the items of a list property from an input's properties.
         Note: Use this in cases where an input provides a dynamic,
@@ -964,7 +970,7 @@ class ReqClient(object):
         response = self.base_client.req("GetInputPropertiesListPropertyItems", payload)
         return response
 
-    def PressInputPropertiesButton(self, input_name, prop_name):
+    def press_input_properties_button(self, input_name, prop_name):
         """
         Presses a button in the properties of an input.
         Note: Use this in cases where there is a button
@@ -982,7 +988,7 @@ class ReqClient(object):
         response = self.base_client.req("PressInputPropertiesButton", payload)
         return response
 
-    def GetTransitionKindList(self):
+    def get_transition_kind_list(self):
         """
         Gets an array of all available transition kinds.
         Similar to GetInputKindList
@@ -992,7 +998,7 @@ class ReqClient(object):
         response = self.base_client.req("GetTransitionKindList")
         return response
 
-    def GetSceneTransitionList(self):
+    def get_scene_transition_list(self):
         """
         Gets an array of all scene transitions in OBS.
 
@@ -1001,7 +1007,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneTransitionList")
         return response
 
-    def GetCurrentSceneTransition(self):
+    def get_current_scene_transition(self):
         """
         Gets an array of all scene transitions in OBS.
 
@@ -1010,7 +1016,7 @@ class ReqClient(object):
         response = self.base_client.req("GetCurrentSceneTransition")
         return response
 
-    def SetCurrentSceneTransition(self, name):
+    def set_current_scene_transition(self, name):
         """
         Sets the current scene transition.
         Small note: While the namespace of scene transitions is generally unique,
@@ -1025,7 +1031,7 @@ class ReqClient(object):
         response = self.base_client.req("SetCurrentSceneTransition", payload)
         return response
 
-    def SetCurrentSceneTransitionDuration(self, duration):
+    def set_current_scene_transition_duration(self, duration):
         """
         Sets the duration of the current scene transition, if it is not fixed.
 
@@ -1038,7 +1044,7 @@ class ReqClient(object):
         response = self.base_client.req("SetCurrentSceneTransitionDuration", payload)
         return response
 
-    def SetCurrentSceneTransitionSettings(self, settings, overlay=None):
+    def set_current_scene_transition_settings(self, settings, overlay=None):
         """
         Sets the settings of the current scene transition.
 
@@ -1053,7 +1059,7 @@ class ReqClient(object):
         response = self.base_client.req("SetCurrentSceneTransitionSettings", payload)
         return response
 
-    def GetCurrentSceneTransitionCursor(self):
+    def get_current_scene_transition_cursor(self):
         """
         Gets the cursor position of the current scene transition.
         Note: transitionCursor will return 1.0 when the transition is inactive.
@@ -1063,7 +1069,7 @@ class ReqClient(object):
         response = self.base_client.req("GetCurrentSceneTransitionCursor")
         return response
 
-    def TriggerStudioModeTransition(self):
+    def trigger_studio_mode_transition(self):
         """
         Triggers the current scene transition.
         Same functionality as the Transition button in studio mode.
@@ -1075,7 +1081,7 @@ class ReqClient(object):
         response = self.base_client.req("TriggerStudioModeTransition")
         return response
 
-    def SetTBarPosition(self, pos, release=None):
+    def set_t_bar_position(self, pos, release=None):
         """
         Sets the position of the TBar.
         Very important note: This will be deprecated
@@ -1092,7 +1098,7 @@ class ReqClient(object):
         response = self.base_client.req("SetTBarPosition", payload)
         return response
 
-    def GetSourceFilterList(self, name):
+    def get_source_filter_list(self, name):
         """
         Gets a list of all of a source's filters.
 
@@ -1105,7 +1111,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSourceFilterList", payload)
         return response
 
-    def GetSourceFilterDefaultSettings(self, kind):
+    def get_source_filter_default_settings(self, kind):
         """
         Gets the default settings for a filter kind.
 
@@ -1118,7 +1124,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSourceFilterDefaultSettings", payload)
         return response
 
-    def CreateSourceFilter(
+    def create_source_filter(
         self, source_name, filter_name, filter_kind, filter_settings=None
     ):
         """
@@ -1144,7 +1150,7 @@ class ReqClient(object):
         response = self.base_client.req("CreateSourceFilter", payload)
         return response
 
-    def RemoveSourceFilter(self, source_name, filter_name):
+    def remove_source_filter(self, source_name, filter_name):
         """
         Gets the default settings for a filter kind.
 
@@ -1162,7 +1168,7 @@ class ReqClient(object):
         response = self.base_client.req("RemoveSourceFilter", payload)
         return response
 
-    def SetSourceFilterName(self, source_name, old_filter_name, new_filter_name):
+    def set_source_filter_name(self, source_name, old_filter_name, new_filter_name):
         """
         Sets the name of a source filter (rename).
 
@@ -1183,7 +1189,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSourceFilterName", payload)
         return response
 
-    def GetSourceFilter(self, source_name, filter_name):
+    def get_source_filter(self, source_name, filter_name):
         """
         Gets the info for a specific source filter.
 
@@ -1198,9 +1204,9 @@ class ReqClient(object):
         response = self.base_client.req("GetSourceFilter", payload)
         return response
 
-    def SetSourceFilterIndex(self, source_name, filter_name, filter_index):
+    def set_source_filter_index(self, source_name, filter_name, filter_index):
         """
-        Gets the info for a specific source filter.
+        Sets the index position of a filter on a source.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1219,9 +1225,11 @@ class ReqClient(object):
         response = self.base_client.req("SetSourceFilterIndex", payload)
         return response
 
-    def SetSourceFilterSettings(self, source_name, filter_name, settings, overlay=None):
+    def set_source_filter_settings(
+        self, source_name, filter_name, settings, overlay=None
+    ):
         """
-        Gets the info for a specific source filter.
+        Sets the settings of a source filter.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1243,9 +1251,9 @@ class ReqClient(object):
         response = self.base_client.req("SetSourceFilterSettings", payload)
         return response
 
-    def SetSourceFilterEnabled(self, source_name, filter_name, enabled):
+    def set_source_filter_enabled(self, source_name, filter_name, enabled):
         """
-        Gets the info for a specific source filter.
+        Sets the enable state of a source filter.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1264,7 +1272,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSourceFilterEnabled", payload)
         return response
 
-    def GetSceneItemList(self, name):
+    def get_scene_item_list(self, name):
         """
         Gets a list of all scene items in a scene.
 
@@ -1277,7 +1285,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemList", payload)
         return response
 
-    def GetGroupItemList(self, name):
+    def get_group_item_list(self, name):
         """
         Gets a list of all scene items in a scene.
 
@@ -1290,7 +1298,7 @@ class ReqClient(object):
         response = self.base_client.req("GetGroupItemList", payload)
         return response
 
-    def GetSceneItemId(self, scene_name, source_name, offset=None):
+    def get_scene_item_id(self, scene_name, source_name, offset=None):
         """
         Searches a scene for a source, and returns its id.
 
@@ -1311,7 +1319,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemId", payload)
         return response
 
-    def CreateSceneItem(self, scene_name, source_name, enabled=None):
+    def create_scene_item(self, scene_name, source_name, enabled=None):
         """
         Creates a new scene item using a source.
         Scenes only
@@ -1333,7 +1341,7 @@ class ReqClient(object):
         response = self.base_client.req("CreateSceneItem", payload)
         return response
 
-    def RemoveSceneItem(self, scene_name, item_id):
+    def remove_scene_item(self, scene_name, item_id):
         """
         Removes a scene item from a scene.
         Scenes only
@@ -1352,7 +1360,7 @@ class ReqClient(object):
         response = self.base_client.req("RemoveSceneItem", payload)
         return response
 
-    def DuplicateSceneItem(self, scene_name, item_id, dest_scene_name=None):
+    def duplicate_scene_item(self, scene_name, item_id, dest_scene_name=None):
         """
         Duplicates a scene item, copying all transform and crop info.
         Scenes only
@@ -1374,7 +1382,7 @@ class ReqClient(object):
         response = self.base_client.req("DuplicateSceneItem", payload)
         return response
 
-    def GetSceneItemTransform(self, scene_name, item_id):
+    def get_scene_item_transform(self, scene_name, item_id):
         """
         Gets the transform and crop info of a scene item.
         Scenes and Groups
@@ -1393,7 +1401,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemTransform", payload)
         return response
 
-    def SetSceneItemTransform(self, scene_name, item_id, transform):
+    def set_scene_item_transform(self, scene_name, item_id, transform):
         """
         Sets the transform and crop info of a scene item.
 
@@ -1412,7 +1420,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneItemTransform", payload)
         return response
 
-    def GetSceneItemEnabled(self, scene_name, item_id):
+    def get_scene_item_enabled(self, scene_name, item_id):
         """
         Gets the enable state of a scene item.
         Scenes and Groups
@@ -1431,7 +1439,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemEnabled", payload)
         return response
 
-    def SetSceneItemEnabled(self, scene_name, item_id, enabled):
+    def set_scene_item_enabled(self, scene_name, item_id, enabled):
         """
         Sets the enable state of a scene item.
         Scenes and Groups'
@@ -1453,7 +1461,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneItemEnabled", payload)
         return response
 
-    def GetSceneItemLocked(self, scene_name, item_id):
+    def get_scene_item_locked(self, scene_name, item_id):
         """
         Gets the lock state of a scene item.
         Scenes and Groups
@@ -1472,7 +1480,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemLocked", payload)
         return response
 
-    def SetSceneItemLocked(self, scene_name, item_id, locked):
+    def set_scene_item_locked(self, scene_name, item_id, locked):
         """
         Sets the lock state of a scene item.
         Scenes and Groups
@@ -1494,7 +1502,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneItemLocked", payload)
         return response
 
-    def GetSceneItemIndex(self, scene_name, item_id):
+    def get_scene_item_index(self, scene_name, item_id):
         """
         Gets the index position of a scene item in a scene.
         An index of 0 is at the bottom of the source list in the UI.
@@ -1514,7 +1522,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemIndex", payload)
         return response
 
-    def SetSceneItemIndex(self, scene_name, item_id, item_index):
+    def set_scene_item_index(self, scene_name, item_id, item_index):
         """
         Sets the index position of a scene item in a scene.
         Scenes and Groups
@@ -1536,7 +1544,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneItemIndex", payload)
         return response
 
-    def GetSceneItemBlendMode(self, scene_name, item_id):
+    def get_scene_item_blend_mode(self, scene_name, item_id):
         """
         Gets the blend mode of a scene item.
         Blend modes:
@@ -1564,7 +1572,7 @@ class ReqClient(object):
         response = self.base_client.req("GetSceneItemBlendMode", payload)
         return response
 
-    def SetSceneItemBlendMode(self, scene_name, item_id, blend):
+    def set_scene_item_blend_mode(self, scene_name, item_id, blend):
         """
         Sets the blend mode of a scene item.
         Scenes and Groups
@@ -1586,7 +1594,7 @@ class ReqClient(object):
         response = self.base_client.req("SetSceneItemBlendMode", payload)
         return response
 
-    def GetVirtualCamStatus(self):
+    def get_virtual_cam_status(self):
         """
         Gets the status of the virtualcam output.
 
@@ -1595,7 +1603,7 @@ class ReqClient(object):
         response = self.base_client.req("GetVirtualCamStatus")
         return response
 
-    def ToggleVirtualCam(self):
+    def toggle_virtual_cam(self):
         """
         Toggles the state of the virtualcam output.
 
@@ -1604,7 +1612,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleVirtualCam")
         return response
 
-    def StartVirtualCam(self):
+    def start_virtual_cam(self):
         """
         Starts the virtualcam output.
 
@@ -1613,7 +1621,7 @@ class ReqClient(object):
         response = self.base_client.req("StartVirtualCam")
         return response
 
-    def StopVirtualCam(self):
+    def stop_virtual_cam(self):
         """
         Stops the virtualcam output.
 
@@ -1622,7 +1630,7 @@ class ReqClient(object):
         response = self.base_client.req("StopVirtualCam")
         return response
 
-    def GetReplayBufferStatus(self):
+    def get_replay_buffer_status(self):
         """
         Gets the status of the replay buffer output.
 
@@ -1631,7 +1639,7 @@ class ReqClient(object):
         response = self.base_client.req("GetReplayBufferStatus")
         return response
 
-    def ToggleReplayBuffer(self):
+    def toggle_replay_buffer(self):
         """
         Toggles the state of the replay buffer output.
 
@@ -1640,7 +1648,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleReplayBuffer")
         return response
 
-    def StartReplayBuffer(self):
+    def start_replay_buffer(self):
         """
         Starts the replay buffer output.
 
@@ -1649,7 +1657,7 @@ class ReqClient(object):
         response = self.base_client.req("StartReplayBuffer")
         return response
 
-    def StopReplayBuffer(self):
+    def stop_replay_buffer(self):
         """
         Stops the replay buffer output.
 
@@ -1658,7 +1666,7 @@ class ReqClient(object):
         response = self.base_client.req("StopReplayBuffer")
         return response
 
-    def SaveReplayBuffer(self):
+    def save_replay_buffer(self):
         """
         Saves the contents of the replay buffer output.
 
@@ -1667,7 +1675,7 @@ class ReqClient(object):
         response = self.base_client.req("SaveReplayBuffer")
         return response
 
-    def GetLastReplayBufferReplay(self):
+    def get_last_replay_buffer_replay(self):
         """
         Gets the filename of the last replay buffer save file.
 
@@ -1676,7 +1684,7 @@ class ReqClient(object):
         response = self.base_client.req("GetLastReplayBufferReplay")
         return response
 
-    def GetStreamStatus(self):
+    def get_stream_status(self):
         """
         Gets the status of the stream output.
 
@@ -1685,7 +1693,7 @@ class ReqClient(object):
         response = self.base_client.req("GetStreamStatus")
         return response
 
-    def ToggleStream(self):
+    def toggle_stream(self):
         """
         Toggles the status of the stream output.
 
@@ -1694,7 +1702,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleStream")
         return response
 
-    def StartStream(self):
+    def start_stream(self):
         """
         Starts the stream output.
 
@@ -1703,7 +1711,7 @@ class ReqClient(object):
         response = self.base_client.req("StartStream")
         return response
 
-    def StopStream(self):
+    def stop_stream(self):
         """
         Stops the stream output.
 
@@ -1712,7 +1720,7 @@ class ReqClient(object):
         response = self.base_client.req("StopStream")
         return response
 
-    def SendStreamCaption(self, caption):
+    def send_stream_caption(self, caption):
         """
         Sends CEA-608 caption text over the stream output.
 
@@ -1724,7 +1732,7 @@ class ReqClient(object):
         response = self.base_client.req("SendStreamCaption")
         return response
 
-    def GetRecordStatus(self):
+    def get_record_status(self):
         """
         Gets the status of the record output.
 
@@ -1733,7 +1741,7 @@ class ReqClient(object):
         response = self.base_client.req("GetRecordStatus")
         return response
 
-    def ToggleRecord(self):
+    def toggle_record(self):
         """
         Toggles the status of the record output.
 
@@ -1742,7 +1750,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleRecord")
         return response
 
-    def StartRecord(self):
+    def start_record(self):
         """
         Starts the record output.
 
@@ -1751,7 +1759,7 @@ class ReqClient(object):
         response = self.base_client.req("StartRecord")
         return response
 
-    def StopRecord(self):
+    def stop_record(self):
         """
         Stops the record output.
 
@@ -1760,7 +1768,7 @@ class ReqClient(object):
         response = self.base_client.req("StopRecord")
         return response
 
-    def ToggleRecordPause(self):
+    def toggle_record_pause(self):
         """
         Toggles pause on the record output.
 
@@ -1769,7 +1777,7 @@ class ReqClient(object):
         response = self.base_client.req("ToggleRecordPause")
         return response
 
-    def PauseRecord(self):
+    def pause_record(self):
         """
         Pauses the record output.
 
@@ -1778,7 +1786,7 @@ class ReqClient(object):
         response = self.base_client.req("PauseRecord")
         return response
 
-    def ResumeRecord(self):
+    def resume_record(self):
         """
         Resumes the record output.
 
@@ -1787,7 +1795,7 @@ class ReqClient(object):
         response = self.base_client.req("ResumeRecord")
         return response
 
-    def GetMediaInputStatus(self, name):
+    def get_media_input_status(self, name):
         """
         Gets the status of a media input.
 
@@ -1810,7 +1818,7 @@ class ReqClient(object):
         response = self.base_client.req("GetMediaInputStatus", payload)
         return response
 
-    def SetMediaInputCursor(self, name, cursor):
+    def set_media_input_cursor(self, name, cursor):
         """
         Sets the cursor position of a media input.
         This request does not perform bounds checking of the cursor position.
@@ -1826,7 +1834,7 @@ class ReqClient(object):
         response = self.base_client.req("SetMediaInputCursor", payload)
         return response
 
-    def OffsetMediaInputCursor(self, name, offset):
+    def offset_media_input_cursor(self, name, offset):
         """
         Offsets the current cursor position of a media input by the specified value.
         This request does not perform bounds checking of the cursor position.
@@ -1842,7 +1850,7 @@ class ReqClient(object):
         response = self.base_client.req("OffsetMediaInputCursor", payload)
         return response
 
-    def TriggerMediaInputAction(self, name, action):
+    def trigger_media_input_action(self, name, action):
         """
         Triggers an action on a media input.
 
@@ -1857,16 +1865,15 @@ class ReqClient(object):
         response = self.base_client.req("TriggerMediaInputAction", payload)
         return response
 
-    def GetStudioModeEnabled(self):
+    def get_studio_mode_enabled(self):
         """
         Gets whether studio is enabled.
 
 
         """
-        response = self.base_client.req("GetStudioModeEnabled")
-        return response
+        return self.getter("GetStudioModeEnabled")
 
-    def SetStudioModeEnabled(self, enabled):
+    def set_studio_mode_enabled(self, enabled):
         """
         Enables or disables studio mode
 
@@ -1879,7 +1886,7 @@ class ReqClient(object):
         response = self.base_client.req("SetStudioModeEnabled", payload)
         return response
 
-    def OpenInputPropertiesDialog(self, name):
+    def open_input_properties_dialog(self, name):
         """
         Opens the properties dialog of an input.
 
@@ -1892,7 +1899,7 @@ class ReqClient(object):
         response = self.base_client.req("OpenInputPropertiesDialog", payload)
         return response
 
-    def OpenInputFiltersDialog(self, name):
+    def open_input_filters_dialog(self, name):
         """
         Opens the filters dialog of an input.
 
@@ -1905,7 +1912,7 @@ class ReqClient(object):
         response = self.base_client.req("OpenInputFiltersDialog", payload)
         return response
 
-    def OpenInputInteractDialog(self, name):
+    def open_input_interact_dialog(self, name):
         """
         Opens the filters dialog of an input.
 
@@ -1918,7 +1925,7 @@ class ReqClient(object):
         response = self.base_client.req("OpenInputInteractDialog", payload)
         return response
 
-    def GetMonitorList(self, name):
+    def get_monitor_list(self, name):
         """
         Gets a list of connected monitors and information about them.
 
