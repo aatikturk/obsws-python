@@ -15,17 +15,19 @@ class Observer:
         print(f"Registered events: {self._cl.callback.get()}")
 
     def on_current_program_scene_changed(self, data):
+        """The current program scene has changed."""
         print(f"Switched to scene {data['sceneName']}")
 
-    def on_scene_created(self, event, data):
+    def on_scene_created(self, data):
         """A new scene has been created."""
-        print(f"{event}: {data}")
+        print(f"scene {data['sceneName']} has been created")
 
-    def on_input_mute_state_changed(self, event, data):
+    def on_input_mute_state_changed(self, data):
         """An input's mute state has changed."""
-        print(f"{event}: {data}")
+        print(f"{data['inputName']} mute toggled")
 
-    def on_exit_started(self):
+    def on_exit_started(self, data):
+        """OBS has begun the shutdown process."""
         print(f"OBS closing!")
         self._cl.unsubscribe()
 

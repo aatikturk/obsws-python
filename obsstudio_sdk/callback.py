@@ -23,15 +23,12 @@ class Callback:
 
         return [self.to_camel_case(fn.__name__) for fn in self._callbacks]
 
-    def trigger(self, event, data=None):
+    def trigger(self, event, data):
         """trigger callback on update"""
 
         for fn in self._callbacks:
             if fn.__name__ == self.to_snake_case(event):
-                if "eventData" in data:
-                    fn(event, data["eventData"])
-                else:
-                    fn(event)
+                fn(data.get("eventData"))
 
     def register(self, fns: Union[Iterable, Callable]):
         """registers callback functions"""
