@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import time
 from enum import IntEnum
 from pathlib import Path
 from random import randint
@@ -16,6 +17,8 @@ Subs = IntEnum(
 
 
 class ObsClient(object):
+    DELAY = 0.001
+
     def __init__(self, **kwargs):
         defaultkwargs = {key: None for key in ["host", "port", "password"]}
         kwargs = defaultkwargs | kwargs
@@ -75,7 +78,7 @@ class ObsClient(object):
             "d": {
                 "rpcVersion": 1,
                 "authentication": auth,
-                "eventSubscriptions": (all_non_high_volume),
+                "eventSubscriptions": all_non_high_volume,
             },
         }
 
@@ -98,4 +101,8 @@ class ObsClient(object):
                 "d": {"requestType": req_type, "requestId": randint(1, 1000)},
             }
         self.ws.send(json.dumps(payload))
-        return json.loads(self.ws.recv())
+        response = json.loads(self.ws.recv())
+        while "requestId" not in response["d"]:
+            response = json.loads(self.ws.recv())
+            time.sleep(self.DELAY)
+        return response["d"]
