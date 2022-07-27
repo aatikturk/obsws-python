@@ -42,13 +42,17 @@ class Callback:
             if fns not in self._callbacks:
                 self._callbacks.append(fns)
 
-    def deregister(self, callback):
+    def deregister(self, fns: Union[Iterable, Callable]):
         """deregisters a callback from _callbacks"""
 
         try:
-            self._callbacks.remove(callback)
-        except ValueError:
-            print(f"Failed to remove: {callback}")
+            iterator = iter(fns)
+            for fn in iterator:
+                if fn in self._callbacks:
+                    self._callbacks.remove(fn)
+        except TypeError as e:
+            if fns in self._callbacks:
+                self._callbacks.remove(fns)
 
     def clear(self):
         """clears the _callbacks list"""

@@ -41,8 +41,9 @@ class EventClient(object):
         self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()
         self.callback = Callback()
+        self.subscribe()
 
-        self.running = True
+    def subscribe(self):
         worker = Thread(target=self.trigger, daemon=True)
         worker.start()
 
@@ -52,6 +53,7 @@ class EventClient(object):
 
         Triggers a callback on event received.
         """
+        self.running = True
         while self.running:
             self.data = json.loads(self.base_client.ws.recv())
             event, data = (self.data["d"].get("eventType"), self.data["d"])
