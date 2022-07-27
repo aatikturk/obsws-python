@@ -30,7 +30,7 @@ It should be placed next to your `__main__.py` file.
 
 #### Otherwise:
 
-Import and start using, parameters are as follows:
+Import and start using, keyword arguments are as follows:
 
 -   `host`: obs websocket server
 -   `port`: port to access server
@@ -42,7 +42,7 @@ Example `__main__.py`
 import obsstudio_sdk as obs
 
 # pass conn info if not in config.toml
-cl = obs.ReqClient('localhost', 4455, 'mystrongpass')
+cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
 
 # Toggle the mute state of your Mic input
 cl.toggle_input_mute('Mic/Aux')
