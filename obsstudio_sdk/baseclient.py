@@ -9,18 +9,13 @@ from random import randint
 import tomllib
 import websocket
 
-Subs = IntEnum(
-    "Subs",
-    "general config scenes inputs transitions filters outputs sceneitems mediainputs vendors ui",
-    start=0,
-)
-
 
 class ObsClient(object):
     DELAY = 0.001
 
     def __init__(self, **kwargs):
         defaultkwargs = {key: None for key in ["host", "port", "password"]}
+        defaultkwargs["subs"] = 0
         kwargs = defaultkwargs | kwargs
         for attr, val in kwargs.items():
             setattr(self, attr, val)
@@ -59,26 +54,12 @@ class ObsClient(object):
             ).digest()
         ).decode()
 
-        all_non_high_volume = (
-            (1 << Subs.general)
-            | (1 << Subs.config)
-            | (1 << Subs.scenes)
-            | (1 << Subs.inputs)
-            | (1 << Subs.transitions)
-            | (1 << Subs.filters)
-            | (1 << Subs.outputs)
-            | (1 << Subs.sceneitems)
-            | (1 << Subs.mediainputs)
-            | (1 << Subs.vendors)
-            | (1 << Subs.ui)
-        )
-
         payload = {
             "op": 1,
             "d": {
                 "rpcVersion": 1,
                 "authentication": auth,
-                "eventSubscriptions": all_non_high_volume,
+                "eventSubscriptions": self.subs,
             },
         }
 
@@ -102,7 +83,4 @@ class ObsClient(object):
             }
         self.ws.send(json.dumps(payload))
         response = json.loads(self.ws.recv())
-        while "requestId" not in response["d"]:
-            response = json.loads(self.ws.recv())
-            time.sleep(self.DELAY)
         return response["d"]

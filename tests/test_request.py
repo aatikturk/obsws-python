@@ -33,7 +33,19 @@ class TestRequests:
             (True),
         ],
     )
-    def test_set_studio_mode_enabled_true(self, state):
+    def test_studio_mode_enabled(self, state):
         req_cl.set_studio_mode_enabled(state)
         resp = req_cl.get_studio_mode_enabled()
         assert resp["studioModeEnabled"] == state
+
+    @pytest.mark.parametrize(
+        "name,data",
+        [
+            ("val1", 3),
+            ("val2", "hello"),
+        ],
+    )
+    def test_persistent_data(self, name, data):
+        req_cl.set_persistent_data("OBS_WEBSOCKET_DATA_REALM_PROFILE", name, data)
+        resp = req_cl.get_persistent_data("OBS_WEBSOCKET_DATA_REALM_PROFILE", name)
+        assert resp["slotValue"] == data

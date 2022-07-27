@@ -33,7 +33,7 @@ class Observer:
 
 
 if __name__ == "__main__":
-    cl = obs.EventsClient()
+    cl = obs.EventClient()
     observer = Observer(cl)
 
     while cmd := input("<Enter> to exit\n"):

@@ -13,11 +13,7 @@ class ReqClient(object):
         self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()
 
-    def getter(self, param):
-        response = self.base_client.req(param)
-        return response["responseData"]
-
-    def setter(self, param, data):
+    def send(self, param, data=None):
         response = self.base_client.req(param, data)
         if not response["requestStatus"]["result"]:
             error = (
@@ -26,8 +22,8 @@ class ReqClient(object):
             if "comment" in response["requestStatus"]:
                 error += (f"With message: {response['requestStatus']['comment']}",)
             raise OBSSDKError("\n".join(error))
-
-    action = setter
+        if "responseData" in response:
+            return response["responseData"]
 
     def get_version(self):
         """
@@ -38,7 +34,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetVersion")
+        return self.send("GetVersion")
 
     def get_stats(self):
         """
@@ -49,7 +45,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetStats")
+        return self.send("GetStats")
 
     def broadcast_custom_event(self, eventData):
         """
@@ -62,7 +58,7 @@ class ReqClient(object):
 
 
         """
-        self.action("BroadcastCustomEvent", eventData)
+        self.send("BroadcastCustomEvent", eventData)
 
     def call_vendor_request(self, vendorName, requestType, requestData=None):
         """
@@ -86,8 +82,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req(req_type=requestType, req_data=requestData)
-        return response
+        self.send(requestType, requestData)
 
     def get_hot_key_list(self):
         """
@@ -98,7 +93,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetHotkeyList")
+        return self.send("GetHotkeyList")
 
     def trigger_hot_key_by_name(self, hotkeyName):
         """
@@ -111,7 +106,7 @@ class ReqClient(object):
 
         """
         payload = {"hotkeyName": hotkeyName}
-        self.action("TriggerHotkeyByName", payload)
+        self.send("TriggerHotkeyByName", payload)
 
     def trigger_hot_key_by_key_sequence(
         self, keyId, pressShift, pressCtrl, pressAlt, pressCmd
@@ -143,9 +138,7 @@ class ReqClient(object):
                 "cmd": pressCmd,
             },
         }
-
-        response = self.base_client.req("TriggerHotkeyByKeySequence", payload)
-        return response
+        self.send("TriggerHotkeyByKeySequence", payload)
 
     def sleep(self, sleepMillis=None, sleepFrames=None):
         """
@@ -160,7 +153,7 @@ class ReqClient(object):
 
         """
         payload = {"sleepMillis": sleepMillis, "sleepFrames": sleepFrames}
-        self.action("Sleep", payload)
+        self.send("Sleep", payload)
 
     def get_persistent_data(self, realm, slotName):
         """
@@ -177,8 +170,7 @@ class ReqClient(object):
 
         """
         payload = {"realm": realm, "slotName": slotName}
-        response = self.base_client.req("GetPersistentData", payload)
-        return response
+        return self.send("GetPersistentData", payload)
 
     def set_persistent_data(self, realm, slotName, slotValue):
         """
@@ -195,8 +187,7 @@ class ReqClient(object):
 
         """
         payload = {"realm": realm, "slotName": slotName, "slotValue": slotValue}
-        response = self.base_client.req("SetPersistentData", payload)
-        return response
+        self.send("SetPersistentData", payload)
 
     def get_scene_collection_list(self):
         """
@@ -207,7 +198,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetSceneCollectionList")
+        return self.send("GetSceneCollectionList")
 
     def set_current_scene_collection(self, name):
         """
@@ -219,7 +210,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneCollectionName": name}
-        self.setter("SetCurrentSceneCollection", payload)
+        self.send("SetCurrentSceneCollection", payload)
 
     def create_scene_collection(self, name):
         """
@@ -232,7 +223,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneCollectionName": name}
-        self.action("CreateSceneCollection", payload)
+        self.send("CreateSceneCollection", payload)
 
     def get_profile_list(self):
         """
@@ -243,7 +234,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetProfileList")
+        return self.send("GetProfileList")
 
     def set_current_profile(self, name):
         """
@@ -255,7 +246,7 @@ class ReqClient(object):
 
         """
         payload = {"profileName": name}
-        self.setter("SetCurrentProfile", payload)
+        self.send("SetCurrentProfile", payload)
 
     def create_profile(self, name):
         """
@@ -267,8 +258,7 @@ class ReqClient(object):
 
         """
         payload = {"profileName": name}
-        response = self.base_client.req("CreateProfile", payload)
-        return response
+        self.send("CreateProfile", payload)
 
     def remove_profile(self, name):
         """
@@ -281,8 +271,7 @@ class ReqClient(object):
 
         """
         payload = {"profileName": name}
-        response = self.base_client.req("RemoveProfile", payload)
-        return response
+        self.send("RemoveProfile", payload)
 
     def get_profile_parameter(self, category, name):
         """
@@ -299,8 +288,7 @@ class ReqClient(object):
 
         """
         payload = {"parameterCategory": category, "parameterName": name}
-        response = self.base_client.req("GetProfileParameter", payload)
-        return response
+        return self.send("GetProfileParameter", payload)
 
     def set_profile_parameter(self, category, name, value):
         """
@@ -323,8 +311,7 @@ class ReqClient(object):
             "parameterName": name,
             "parameterValue": value,
         }
-        response = self.base_client.req("SetProfileParameter", payload)
-        return response
+        self.send("SetProfileParameter", payload)
 
     def get_video_settings(self):
         """
@@ -334,8 +321,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetVideoSettings")
-        return response
+        return self.send("GetVideoSettings")
 
     def set_video_settings(
         self, numerator, denominator, base_width, base_height, out_width, out_height
@@ -368,8 +354,7 @@ class ReqClient(object):
             "outputWidth": out_width,
             "outputHeight": out_height,
         }
-        response = self.base_client.req("SetVideoSettings", payload)
-        return response
+        self.send("SetVideoSettings", payload)
 
     def get_stream_service_settings(self):
         """
@@ -377,8 +362,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetStreamServiceSettings")
-        return response
+        return self.send("GetStreamServiceSettings")
 
     def set_stream_service_settings(self, ss_type, ss_settings):
         """
@@ -397,8 +381,7 @@ class ReqClient(object):
             "streamServiceType": ss_type,
             "streamServiceSettings": ss_settings,
         }
-        response = self.base_client.req("SetStreamServiceSettings", payload)
-        return response
+        self.send("SetStreamServiceSettings", payload)
 
     def get_source_active(self, name):
         """
@@ -410,8 +393,7 @@ class ReqClient(object):
 
         """
         payload = {"sourceName": name}
-        response = self.base_client.req("GetSourceActive", payload)
-        return response
+        return self.send("GetSourceActive", payload)
 
     def get_source_screenshot(self, name, img_format, width, height, quality):
         """
@@ -442,8 +424,7 @@ class ReqClient(object):
             "imageHeight": height,
             "imageCompressionQuality": quality,
         }
-        response = self.base_client.req("GetSourceScreenshot", payload)
-        return response
+        return self.send("GetSourceScreenshot", payload)
 
     def save_source_screenshot(
         self, name, img_format, file_path, width, height, quality
@@ -479,8 +460,7 @@ class ReqClient(object):
             "imageHeight": height,
             "imageCompressionQuality": quality,
         }
-        response = self.base_client.req("SaveSourceScreenshot", payload)
-        return response
+        return self.send("SaveSourceScreenshot", payload)
 
     def get_scene_list(self):
         """
@@ -488,7 +468,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetSceneList")
+        return self.send("GetSceneList")
 
     def get_group_list(self):
         """
@@ -499,8 +479,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetSceneList")
-        return response
+        return self.send("GetSceneList")
 
     def get_current_program_scene(self):
         """
@@ -508,7 +487,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetCurrentProgramScene")
+        return self.send("GetCurrentProgramScene")
 
     def set_current_program_scene(self, name):
         """
@@ -520,7 +499,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        self.setter("SetCurrentProgramScene", payload)
+        self.send("SetCurrentProgramScene", payload)
 
     def get_current_preview_scene(self):
         """
@@ -528,8 +507,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetCurrentPreviewScene")
-        return response
+        return self.send("GetCurrentPreviewScene")
 
     def set_current_preview_scene(self, name):
         """
@@ -541,8 +519,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("SetCurrentPreviewScene", payload)
-        return response
+        self.send("SetCurrentPreviewScene", payload)
 
     def create_scene(self, name):
         """
@@ -554,8 +531,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("CreateScene", payload)
-        return response
+        self.send("CreateScene", payload)
 
     def remove_scene(self, name):
         """
@@ -567,8 +543,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("RemoveScene", payload)
-        return response
+        self.send("RemoveScene", payload)
 
     def set_scene_name(self, old_name, new_name):
         """
@@ -582,8 +557,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": old_name, "newSceneName": new_name}
-        response = self.base_client.req("SetSceneName", payload)
-        return response
+        self.send("SetSceneName", payload)
 
     def get_scene_scene_transition_override(self, name):
         """
@@ -595,8 +569,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("GetSceneSceneTransitionOverride", payload)
-        return response
+        return self.send("GetSceneSceneTransitionOverride", payload)
 
     def set_scene_scene_transition_override(self, scene_name, tr_name, tr_duration):
         """
@@ -616,8 +589,7 @@ class ReqClient(object):
             "transitionName": tr_name,
             "transitionDuration": tr_duration,
         }
-        response = self.base_client.req("SetSceneSceneTransitionOverride", payload)
-        return response
+        self.send("SetSceneSceneTransitionOverride", payload)
 
     def get_input_list(self, kind):
         """
@@ -629,8 +601,7 @@ class ReqClient(object):
 
         """
         payload = {"inputKind": kind}
-        response = self.base_client.req("GetInputList", payload)
-        return response
+        return self.send("GetInputList", payload)
 
     def get_input_kind_list(self, unversioned):
         """
@@ -642,8 +613,7 @@ class ReqClient(object):
 
         """
         payload = {"unversioned": unversioned}
-        response = self.base_client.req("GetInputKindList", payload)
-        return response
+        return self.send("GetInputKindList", payload)
 
     def get_special_inputs(self):
         """
@@ -651,8 +621,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetSpecialInputs")
-        return response
+        return self.send("GetSpecialInputs")
 
     def create_input(
         self, sceneName, inputName, inputKind, inputSettings, sceneItemEnabled
@@ -680,8 +649,7 @@ class ReqClient(object):
             "inputSettings": inputSettings,
             "sceneItemEnabled": sceneItemEnabled,
         }
-        response = self.base_client.req("CreateInput", payload)
-        return response
+        self.send("CreateInput", payload)
 
     def remove_input(self, name):
         """
@@ -693,8 +661,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("RemoveInput", payload)
-        return response
+        self.send("RemoveInput", payload)
 
     def set_input_name(self, old_name, new_name):
         """
@@ -708,8 +675,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": old_name, "newInputName": new_name}
-        response = self.base_client.req("SetInputName", payload)
-        return response
+        self.send("SetInputName", payload)
 
     def get_input_default_settings(self, kind):
         """
@@ -721,8 +687,7 @@ class ReqClient(object):
 
         """
         payload = {"inputKind": kind}
-        response = self.base_client.req("GetInputDefaultSettings", payload)
-        return response
+        return self.send("GetInputDefaultSettings", payload)
 
     def get_input_settings(self, name):
         """
@@ -736,8 +701,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputSettings", payload)
-        return response
+        return self.send("GetInputSettings", payload)
 
     def set_input_settings(self, name, settings, overlay):
         """
@@ -753,8 +717,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "inputSettings": settings, "overlay": overlay}
-        response = self.base_client.req("SetInputSettings", payload)
-        return response
+        self.send("SetInputSettings", payload)
 
     def get_input_mute(self, name):
         """
@@ -766,8 +729,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputMute", payload)
-        return response
+        return self.send("GetInputMute", payload)
 
     def set_input_mute(self, name, muted):
         """
@@ -781,8 +743,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "inputMuted": muted}
-        response = self.base_client.req("SetInputMute", payload)
-        return response
+        self.send("SetInputMute", payload)
 
     def toggle_input_mute(self, name):
         """
@@ -794,8 +755,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("ToggleInputMute", payload)
-        return response
+        self.send("ToggleInputMute", payload)
 
     def get_input_volume(self, name):
         """
@@ -807,8 +767,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputVolume", payload)
-        return response
+        return self.send("GetInputVolume", payload)
 
     def set_input_volume(self, name, vol_mul=None, vol_db=None):
         """
@@ -828,8 +787,7 @@ class ReqClient(object):
             "inputVolumeMul": vol_mul,
             "inputVolumeDb": vol_db,
         }
-        response = self.base_client.req("SetInputVolume", payload)
-        return response
+        self.send("SetInputVolume", payload)
 
     def get_input_audio_balance(self, name):
         """
@@ -841,8 +799,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputAudioBalance", payload)
-        return response
+        return self.send("GetInputAudioBalance", payload)
 
     def set_input_audio_balance(self, name, balance):
         """
@@ -856,8 +813,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "inputAudioBalance": balance}
-        response = self.base_client.req("SetInputAudioBalance", payload)
-        return response
+        self.send("SetInputAudioBalance", payload)
 
     def get_input_audio_sync_offset(self, name):
         """
@@ -869,8 +825,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputAudioSyncOffset", payload)
-        return response
+        return self.send("GetInputAudioSyncOffset", payload)
 
     def set_input_audio_sync_offset(self, name, offset):
         """
@@ -884,8 +839,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "inputAudioSyncOffset": offset}
-        response = self.base_client.req("SetInputAudioSyncOffset", payload)
-        return response
+        self.send("SetInputAudioSyncOffset", payload)
 
     def get_input_audio_monitor_type(self, name):
         """
@@ -903,8 +857,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputAudioMonitorType", payload)
-        return response
+        return self.send("GetInputAudioMonitorType", payload)
 
     def set_input_audio_monitor_type(self, name, mon_type):
         """
@@ -918,8 +871,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "monitorType": mon_type}
-        response = self.base_client.req("SetInputAudioMonitorType", payload)
-        return response
+        self.send("SetInputAudioMonitorType", payload)
 
     def get_input_audio_tracks(self, name):
         """
@@ -931,8 +883,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetInputAudioTracks", payload)
-        return response
+        return self.send("GetInputAudioTracks", payload)
 
     def set_input_audio_tracks(self, name, track):
         """
@@ -946,8 +897,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "inputAudioTracks": track}
-        response = self.base_client.req("SetInputAudioTracks", payload)
-        return response
+        self.send("SetInputAudioTracks", payload)
 
     def get_input_properties_list_property_items(self, input_name, prop_name):
         """
@@ -964,8 +914,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": input_name, "propertyName": prop_name}
-        response = self.base_client.req("GetInputPropertiesListPropertyItems", payload)
-        return response
+        return self.send("GetInputPropertiesListPropertyItems", payload)
 
     def press_input_properties_button(self, input_name, prop_name):
         """
@@ -982,8 +931,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": input_name, "propertyName": prop_name}
-        response = self.base_client.req("PressInputPropertiesButton", payload)
-        return response
+        self.send("PressInputPropertiesButton", payload)
 
     def get_transition_kind_list(self):
         """
@@ -992,8 +940,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetTransitionKindList")
-        return response
+        return self.send("GetTransitionKindList")
 
     def get_scene_transition_list(self):
         """
@@ -1001,8 +948,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetSceneTransitionList")
-        return response
+        return self.send("GetSceneTransitionList")
 
     def get_current_scene_transition(self):
         """
@@ -1010,8 +956,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetCurrentSceneTransition")
-        return response
+        return self.send("GetCurrentSceneTransition")
 
     def set_current_scene_transition(self, name):
         """
@@ -1025,8 +970,7 @@ class ReqClient(object):
 
         """
         payload = {"transitionName": name}
-        response = self.base_client.req("SetCurrentSceneTransition", payload)
-        return response
+        self.send("SetCurrentSceneTransition", payload)
 
     def set_current_scene_transition_duration(self, duration):
         """
@@ -1038,8 +982,7 @@ class ReqClient(object):
 
         """
         payload = {"transitionDuration": duration}
-        response = self.base_client.req("SetCurrentSceneTransitionDuration", payload)
-        return response
+        self.send("SetCurrentSceneTransitionDuration", payload)
 
     def set_current_scene_transition_settings(self, settings, overlay=None):
         """
@@ -1053,8 +996,7 @@ class ReqClient(object):
 
         """
         payload = {"transitionSettings": settings, "overlay": overlay}
-        response = self.base_client.req("SetCurrentSceneTransitionSettings", payload)
-        return response
+        self.send("SetCurrentSceneTransitionSettings", payload)
 
     def get_current_scene_transition_cursor(self):
         """
@@ -1063,8 +1005,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetCurrentSceneTransitionCursor")
-        return response
+        return self.send("GetCurrentSceneTransitionCursor")
 
     def trigger_studio_mode_transition(self):
         """
@@ -1075,8 +1016,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("TriggerStudioModeTransition")
-        return response
+        self.send("TriggerStudioModeTransition")
 
     def set_t_bar_position(self, pos, release=None):
         """
@@ -1092,8 +1032,7 @@ class ReqClient(object):
 
         """
         payload = {"position": pos, "release": release}
-        response = self.base_client.req("SetTBarPosition", payload)
-        return response
+        self.send("SetTBarPosition", payload)
 
     def get_source_filter_list(self, name):
         """
@@ -1105,8 +1044,7 @@ class ReqClient(object):
 
         """
         payload = {"sourceName": name}
-        response = self.base_client.req("GetSourceFilterList", payload)
-        return response
+        return self.send("GetSourceFilterList", payload)
 
     def get_source_filter_default_settings(self, kind):
         """
@@ -1118,8 +1056,7 @@ class ReqClient(object):
 
         """
         payload = {"filterKind": kind}
-        response = self.base_client.req("GetSourceFilterDefaultSettings", payload)
-        return response
+        return self.send("GetSourceFilterDefaultSettings", payload)
 
     def create_source_filter(
         self, source_name, filter_name, filter_kind, filter_settings=None
@@ -1144,8 +1081,7 @@ class ReqClient(object):
             "filterKind": filter_kind,
             "filterSettings": filter_settings,
         }
-        response = self.base_client.req("CreateSourceFilter", payload)
-        return response
+        self.send("CreateSourceFilter", payload)
 
     def remove_source_filter(self, source_name, filter_name):
         """
@@ -1162,8 +1098,7 @@ class ReqClient(object):
             "sourceName": source_name,
             "filterName": filter_name,
         }
-        response = self.base_client.req("RemoveSourceFilter", payload)
-        return response
+        self.send("RemoveSourceFilter", payload)
 
     def set_source_filter_name(self, source_name, old_filter_name, new_filter_name):
         """
@@ -1183,8 +1118,7 @@ class ReqClient(object):
             "filterName": old_filter_name,
             "newFilterName": new_filter_name,
         }
-        response = self.base_client.req("SetSourceFilterName", payload)
-        return response
+        self.send("SetSourceFilterName", payload)
 
     def get_source_filter(self, source_name, filter_name):
         """
@@ -1198,8 +1132,7 @@ class ReqClient(object):
 
         """
         payload = {"sourceName": source_name, "filterName": filter_name}
-        response = self.base_client.req("GetSourceFilter", payload)
-        return response
+        return self.send("GetSourceFilter", payload)
 
     def set_source_filter_index(self, source_name, filter_name, filter_index):
         """
@@ -1219,8 +1152,7 @@ class ReqClient(object):
             "filterName": filter_name,
             "filterIndex": filter_index,
         }
-        response = self.base_client.req("SetSourceFilterIndex", payload)
-        return response
+        self.send("SetSourceFilterIndex", payload)
 
     def set_source_filter_settings(
         self, source_name, filter_name, settings, overlay=None
@@ -1245,8 +1177,7 @@ class ReqClient(object):
             "filterSettings": settings,
             "overlay": overlay,
         }
-        response = self.base_client.req("SetSourceFilterSettings", payload)
-        return response
+        self.send("SetSourceFilterSettings", payload)
 
     def set_source_filter_enabled(self, source_name, filter_name, enabled):
         """
@@ -1266,8 +1197,7 @@ class ReqClient(object):
             "filterName": filter_name,
             "filterEnabled": enabled,
         }
-        response = self.base_client.req("SetSourceFilterEnabled", payload)
-        return response
+        self.send("SetSourceFilterEnabled", payload)
 
     def get_scene_item_list(self, name):
         """
@@ -1279,8 +1209,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("GetSceneItemList", payload)
-        return response
+        return self.send("GetSceneItemList", payload)
 
     def get_group_item_list(self, name):
         """
@@ -1292,8 +1221,7 @@ class ReqClient(object):
 
         """
         payload = {"sceneName": name}
-        response = self.base_client.req("GetGroupItemList", payload)
-        return response
+        return self.send("GetGroupItemList", payload)
 
     def get_scene_item_id(self, scene_name, source_name, offset=None):
         """
@@ -1313,8 +1241,7 @@ class ReqClient(object):
             "sourceName": source_name,
             "searchOffset": offset,
         }
-        response = self.base_client.req("GetSceneItemId", payload)
-        return response
+        return self.send("GetSceneItemId", payload)
 
     def create_scene_item(self, scene_name, source_name, enabled=None):
         """
@@ -1335,8 +1262,7 @@ class ReqClient(object):
             "sourceName": source_name,
             "sceneItemEnabled": enabled,
         }
-        response = self.base_client.req("CreateSceneItem", payload)
-        return response
+        self.send("CreateSceneItem", payload)
 
     def remove_scene_item(self, scene_name, item_id):
         """
@@ -1354,8 +1280,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("RemoveSceneItem", payload)
-        return response
+        self.send("RemoveSceneItem", payload)
 
     def duplicate_scene_item(self, scene_name, item_id, dest_scene_name=None):
         """
@@ -1376,8 +1301,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "destinationSceneName": dest_scene_name,
         }
-        response = self.base_client.req("DuplicateSceneItem", payload)
-        return response
+        self.send("DuplicateSceneItem", payload)
 
     def get_scene_item_transform(self, scene_name, item_id):
         """
@@ -1395,8 +1319,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("GetSceneItemTransform", payload)
-        return response
+        return self.send("GetSceneItemTransform", payload)
 
     def set_scene_item_transform(self, scene_name, item_id, transform):
         """
@@ -1414,8 +1337,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "sceneItemTransform": transform,
         }
-        response = self.base_client.req("SetSceneItemTransform", payload)
-        return response
+        self.send("SetSceneItemTransform", payload)
 
     def get_scene_item_enabled(self, scene_name, item_id):
         """
@@ -1433,8 +1355,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("GetSceneItemEnabled", payload)
-        return response
+        return self.send("GetSceneItemEnabled", payload)
 
     def set_scene_item_enabled(self, scene_name, item_id, enabled):
         """
@@ -1455,8 +1376,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "sceneItemEnabled": enabled,
         }
-        response = self.base_client.req("SetSceneItemEnabled", payload)
-        return response
+        self.send("SetSceneItemEnabled", payload)
 
     def get_scene_item_locked(self, scene_name, item_id):
         """
@@ -1474,8 +1394,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("GetSceneItemLocked", payload)
-        return response
+        return self.send("GetSceneItemLocked", payload)
 
     def set_scene_item_locked(self, scene_name, item_id, locked):
         """
@@ -1496,8 +1415,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "sceneItemLocked": locked,
         }
-        response = self.base_client.req("SetSceneItemLocked", payload)
-        return response
+        self.send("SetSceneItemLocked", payload)
 
     def get_scene_item_index(self, scene_name, item_id):
         """
@@ -1516,8 +1434,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("GetSceneItemIndex", payload)
-        return response
+        return self.send("GetSceneItemIndex", payload)
 
     def set_scene_item_index(self, scene_name, item_id, item_index):
         """
@@ -1538,8 +1455,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "sceneItemLocked": item_index,
         }
-        response = self.base_client.req("SetSceneItemIndex", payload)
-        return response
+        self.send("SetSceneItemIndex", payload)
 
     def get_scene_item_blend_mode(self, scene_name, item_id):
         """
@@ -1566,8 +1482,7 @@ class ReqClient(object):
             "sceneName": scene_name,
             "sceneItemId": item_id,
         }
-        response = self.base_client.req("GetSceneItemBlendMode", payload)
-        return response
+        return self.send("GetSceneItemBlendMode", payload)
 
     def set_scene_item_blend_mode(self, scene_name, item_id, blend):
         """
@@ -1588,8 +1503,7 @@ class ReqClient(object):
             "sceneItemId": item_id,
             "sceneItemBlendMode": blend,
         }
-        response = self.base_client.req("SetSceneItemBlendMode", payload)
-        return response
+        self.send("SetSceneItemBlendMode", payload)
 
     def get_virtual_cam_status(self):
         """
@@ -1597,8 +1511,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetVirtualCamStatus")
-        return response
+        return self.send("GetVirtualCamStatus")
 
     def toggle_virtual_cam(self):
         """
@@ -1606,8 +1519,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ToggleVirtualCam")
-        return response
+        self.send("ToggleVirtualCam")
 
     def start_virtual_cam(self):
         """
@@ -1615,8 +1527,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StartVirtualCam")
-        return response
+        self.send("StartVirtualCam")
 
     def stop_virtual_cam(self):
         """
@@ -1624,8 +1535,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StopVirtualCam")
-        return response
+        self.send("StopVirtualCam")
 
     def get_replay_buffer_status(self):
         """
@@ -1633,8 +1543,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetReplayBufferStatus")
-        return response
+        return self.send("GetReplayBufferStatus")
 
     def toggle_replay_buffer(self):
         """
@@ -1642,8 +1551,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ToggleReplayBuffer")
-        return response
+        self.send("ToggleReplayBuffer")
 
     def start_replay_buffer(self):
         """
@@ -1651,8 +1559,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StartReplayBuffer")
-        return response
+        self.send("StartReplayBuffer")
 
     def stop_replay_buffer(self):
         """
@@ -1660,8 +1567,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StopReplayBuffer")
-        return response
+        self.send("StopReplayBuffer")
 
     def save_replay_buffer(self):
         """
@@ -1669,8 +1575,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("SaveReplayBuffer")
-        return response
+        self.send("SaveReplayBuffer")
 
     def get_last_replay_buffer_replay(self):
         """
@@ -1678,8 +1583,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetLastReplayBufferReplay")
-        return response
+        return self.send("GetLastReplayBufferReplay")
 
     def get_stream_status(self):
         """
@@ -1687,8 +1591,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetStreamStatus")
-        return response
+        return self.send("GetStreamStatus")
 
     def toggle_stream(self):
         """
@@ -1696,8 +1599,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ToggleStream")
-        return response
+        self.send("ToggleStream")
 
     def start_stream(self):
         """
@@ -1705,8 +1607,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StartStream")
-        return response
+        self.send("StartStream")
 
     def stop_stream(self):
         """
@@ -1714,8 +1615,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StopStream")
-        return response
+        self.send("StopStream")
 
     def send_stream_caption(self, caption):
         """
@@ -1726,8 +1626,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("SendStreamCaption")
-        return response
+        self.send("SendStreamCaption")
 
     def get_record_status(self):
         """
@@ -1735,8 +1634,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("GetRecordStatus")
-        return response
+        return self.send("GetRecordStatus")
 
     def toggle_record(self):
         """
@@ -1744,8 +1642,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ToggleRecord")
-        return response
+        self.send("ToggleRecord")
 
     def start_record(self):
         """
@@ -1753,8 +1650,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StartRecord")
-        return response
+        self.send("StartRecord")
 
     def stop_record(self):
         """
@@ -1762,8 +1658,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("StopRecord")
-        return response
+        self.send("StopRecord")
 
     def toggle_record_pause(self):
         """
@@ -1771,8 +1666,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ToggleRecordPause")
-        return response
+        self.send("ToggleRecordPause")
 
     def pause_record(self):
         """
@@ -1780,8 +1674,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("PauseRecord")
-        return response
+        self.send("PauseRecord")
 
     def resume_record(self):
         """
@@ -1789,8 +1682,7 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req("ResumeRecord")
-        return response
+        self.send("ResumeRecord")
 
     def get_media_input_status(self, name):
         """
@@ -1812,8 +1704,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("GetMediaInputStatus", payload)
-        return response
+        return self.send("GetMediaInputStatus", payload)
 
     def set_media_input_cursor(self, name, cursor):
         """
@@ -1828,8 +1719,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "mediaCursor": cursor}
-        response = self.base_client.req("SetMediaInputCursor", payload)
-        return response
+        self.send("SetMediaInputCursor", payload)
 
     def offset_media_input_cursor(self, name, offset):
         """
@@ -1844,8 +1734,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "mediaCursorOffset": offset}
-        response = self.base_client.req("OffsetMediaInputCursor", payload)
-        return response
+        self.send("OffsetMediaInputCursor", payload)
 
     def trigger_media_input_action(self, name, action):
         """
@@ -1859,8 +1748,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name, "mediaAction": action}
-        response = self.base_client.req("TriggerMediaInputAction", payload)
-        return response
+        self.send("TriggerMediaInputAction", payload)
 
     def get_studio_mode_enabled(self):
         """
@@ -1868,7 +1756,7 @@ class ReqClient(object):
 
 
         """
-        return self.getter("GetStudioModeEnabled")
+        return self.send("GetStudioModeEnabled")
 
     def set_studio_mode_enabled(self, enabled):
         """
@@ -1880,8 +1768,7 @@ class ReqClient(object):
 
         """
         payload = {"studioModeEnabled": enabled}
-        response = self.base_client.req("SetStudioModeEnabled", payload)
-        return response
+        self.send("SetStudioModeEnabled", payload)
 
     def open_input_properties_dialog(self, name):
         """
@@ -1893,8 +1780,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("OpenInputPropertiesDialog", payload)
-        return response
+        self.send("OpenInputPropertiesDialog", payload)
 
     def open_input_filters_dialog(self, name):
         """
@@ -1906,8 +1792,7 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("OpenInputFiltersDialog", payload)
-        return response
+        self.send("OpenInputFiltersDialog", payload)
 
     def open_input_interact_dialog(self, name):
         """
@@ -1919,14 +1804,12 @@ class ReqClient(object):
 
         """
         payload = {"inputName": name}
-        response = self.base_client.req("OpenInputInteractDialog", payload)
-        return response
+        self.send("OpenInputInteractDialog", payload)
 
-    def get_monitor_list(self, name):
+    def get_monitor_list(self):
         """
         Gets a list of connected monitors and information about them.
 
 
         """
-        response = self.base_client.req("GetMonitorList")
-        return response
+        return self.send("GetMonitorList")
