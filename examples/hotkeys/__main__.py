@@ -29,8 +29,8 @@ def set_scene(scene, *args):
 
 if __name__ == "__main__":
     req_cl = obs.ReqClient()
-    req_ev = obs.EventClient()
-    observer = Observer(req_ev)
+    ev_cl = obs.EventClient()
+    observer = Observer(ev_cl)
 
     keyboard.add_hotkey("1", set_scene, args=("START",))
     keyboard.add_hotkey("2", set_scene, args=("BRB",))
