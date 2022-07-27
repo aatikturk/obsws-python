@@ -20,7 +20,10 @@ class Observer:
 
 
 def version():
-    print(req_cl.get_version())
+    resp = req_cl.get_version()
+    print(
+        f"Running OBS version:{resp.obs_version} with websocket version:{resp.obs_web_socket_version}"
+    )
 
 
 def set_scene(scene, *args):
@@ -32,6 +35,7 @@ if __name__ == "__main__":
     ev_cl = obs.EventClient()
     observer = Observer(ev_cl)
 
+    keyboard.add_hotkey("0", version)
     keyboard.add_hotkey("1", set_scene, args=("START",))
     keyboard.add_hotkey("2", set_scene, args=("BRB",))
     keyboard.add_hotkey("3", set_scene, args=("END",))
