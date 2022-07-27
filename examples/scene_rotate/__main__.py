@@ -5,7 +5,7 @@ import obsstudio_sdk as obs
 
 def main():
     resp = cl.get_scene_list()
-    scenes = reversed(tuple(di["sceneName"] for di in resp["scenes"]))
+    scenes = reversed(tuple(di.get("sceneName") for di in resp.scenes))
 
     for sc in scenes:
         print(f"Switching to scene {sc}")

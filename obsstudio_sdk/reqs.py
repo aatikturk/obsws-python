@@ -1,5 +1,6 @@
 from .baseclient import ObsClient
 from .error import OBSSDKError
+from .util import as_dataclass
 
 """
 A class to interact with obs-websocket requests
@@ -23,7 +24,7 @@ class ReqClient(object):
                 error += (f"With message: {response['requestStatus']['comment']}",)
             raise OBSSDKError("\n".join(error))
         if "responseData" in response:
-            return response["responseData"]
+            return as_dataclass(response["requestType"], response["responseData"])
 
     def get_version(self):
         """

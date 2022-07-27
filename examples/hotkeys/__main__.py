@@ -16,7 +16,7 @@ class Observer:
 
     def on_current_program_scene_changed(self, data):
         """The current program scene has changed."""
-        print(f"{self.event_identifier}: {data}")
+        print(f"{self.event_identifier}: {data.scene_name}")
 
 
 def version():

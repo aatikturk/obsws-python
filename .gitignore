@@ -22,6 +22,19 @@ wheels/
 *.egg
 MANIFEST
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
 # Environments
 .env
 .venv

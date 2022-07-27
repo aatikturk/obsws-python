@@ -1,5 +1,6 @@
-import re
 from typing import Callable, Iterable, Union
+
+from .util import as_dataclass, to_camel_case, to_snake_case
 
 
 class Callback:
@@ -10,25 +11,17 @@ class Callback:
 
         self._callbacks = list()
 
-    def to_camel_case(self, s):
-        s = "".join(word.title() for word in s.split("_"))
-        return s[2:]
-
-    def to_snake_case(self, s):
-        s = re.sub(r"(?<!^)(?=[A-Z])", "_", s).lower()
-        return f"on_{s}"
-
     def get(self) -> list:
         """returns a list of registered events"""
 
-        return [self.to_camel_case(fn.__name__) for fn in self._callbacks]
+        return [to_camel_case(fn.__name__) for fn in self._callbacks]
 
     def trigger(self, event, data):
         """trigger callback on update"""
 
         for fn in self._callbacks:
-            if fn.__name__ == self.to_snake_case(event):
-                fn(data.get("eventData"))
+            if fn.__name__ == f"on_{to_snake_case(event)}":
+                fn(as_dataclass(event, data.get("eventData")))
 
     def register(self, fns: Union[Iterable, Callable]):
         """registers callback functions"""
