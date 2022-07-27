@@ -14,7 +14,7 @@ class Callback:
     def get(self) -> list:
         """returns a list of registered events"""
 
-        return [to_camel_case(fn.__name__) for fn in self._callbacks]
+        return [to_camel_case(fn.__name__[2:]) for fn in self._callbacks]
 
     def trigger(self, event, data):
         """trigger callback on update"""
