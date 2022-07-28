@@ -11,10 +11,16 @@ def to_snake_case(s):
 
 
 def as_dataclass(identifier, data):
+    def attrs():
+        return list(data.keys())
+
     return dataclass(
         type(
             f"{identifier}Dataclass",
             (),
-            {**{to_snake_case(k): v for k, v in data.items()}},
+            {
+                "attrs": attrs,
+                **{to_snake_case(k): v for k, v in data.items()},
+            },
         )
     )

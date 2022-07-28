@@ -21,7 +21,7 @@ class Callback:
 
         for fn in self._callbacks:
             if fn.__name__ == f"on_{to_snake_case(event)}":
-                fn(as_dataclass(event, data.get("eventData")))
+                fn(as_dataclass(event, data))
 
     def register(self, fns: Union[Iterable, Callable]):
         """registers callback functions"""

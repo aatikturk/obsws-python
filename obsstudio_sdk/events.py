@@ -57,7 +57,10 @@ class EventClient(object):
         self.running = True
         while self.running:
             self.data = json.loads(self.base_client.ws.recv())
-            event, data = (self.data["d"].get("eventType"), self.data["d"])
+            event, data = (
+                self.data["d"].get("eventType"),
+                self.data["d"].get("eventData"),
+            )
             self.callback.trigger(event, data)
             time.sleep(self.DELAY)
 
