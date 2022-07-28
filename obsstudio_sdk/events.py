@@ -23,20 +23,21 @@ class EventClient(object):
     DELAY = 0.001
 
     def __init__(self, **kwargs):
-        defaultkwargs = dict()
-        defaultkwargs["subs"] = (
-            (1 << Subs.general)
-            | (1 << Subs.config)
-            | (1 << Subs.scenes)
-            | (1 << Subs.inputs)
-            | (1 << Subs.transitions)
-            | (1 << Subs.filters)
-            | (1 << Subs.outputs)
-            | (1 << Subs.sceneitems)
-            | (1 << Subs.mediainputs)
-            | (1 << Subs.vendors)
-            | (1 << Subs.ui)
-        )
+        defaultkwargs = {
+            "subs": (
+                (1 << Subs.general)
+                | (1 << Subs.config)
+                | (1 << Subs.scenes)
+                | (1 << Subs.inputs)
+                | (1 << Subs.transitions)
+                | (1 << Subs.filters)
+                | (1 << Subs.outputs)
+                | (1 << Subs.sceneitems)
+                | (1 << Subs.mediainputs)
+                | (1 << Subs.vendors)
+                | (1 << Subs.ui)
+            )
+        }
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()

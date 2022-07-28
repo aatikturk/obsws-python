@@ -12,8 +12,10 @@ class ObsClient(object):
     DELAY = 0.001
 
     def __init__(self, **kwargs):
-        defaultkwargs = {key: None for key in ["host", "port", "password"]}
-        defaultkwargs["subs"] = 0
+        defaultkwargs = {
+            **{key: None for key in ["host", "port", "password"]},
+            "subs": 0,
+        }
         kwargs = defaultkwargs | kwargs
         for attr, val in kwargs.items():
             setattr(self, attr, val)
