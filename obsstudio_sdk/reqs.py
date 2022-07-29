@@ -1,28 +1,43 @@
-from . import baseclient
+from .baseclient import ObsClient
+from .error import OBSSDKError
+from .util import as_dataclass
 
 """
 A class to interact with obs-websocket requests
 defined in official github repo
 https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#Requests
 """
-class ReqClient(object):
-    def __init__(self, host, port, password):
-        self.base_client = baseclient.ObsClient(host, port, password)
+
+
+class ReqClient:
+    def __init__(self, **kwargs):
+        self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()
 
-    def GetVersion(self):
+    def send(self, param, data=None):
+        response = self.base_client.req(param, data)
+        if not response["requestStatus"]["result"]:
+            error = (
+                f"Request {response['requestType']} returned code {response['requestStatus']['code']}",
+            )
+            if "comment" in response["requestStatus"]:
+                error += (f"With message: {response['requestStatus']['comment']}",)
+            raise OBSSDKError("\n".join(error))
+        if "responseData" in response:
+            return as_dataclass(response["requestType"], response["responseData"])
+
+    def get_version(self):
         """
         Gets data about the current plugin and RPC version.
-                
+
         :return: The version info as a dictionary
         :rtype:  dict
 
 
         """
-        response = self.base_client.req('GetVersion')
-        return response
-    
-    def GetStats(self):
+        return self.send("GetVersion")
+
+    def get_stats(self):
         """
         Gets statistics about OBS, obs-websocket, and the current session.
 
@@ -31,10 +46,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req('GetStats')
-        return response
+        return self.send("GetStats")
 
-    def BroadcastCustomEvent(self, eventData):
+    def broadcast_custom_event(self, eventData):
         """
         Broadcasts a CustomEvent to all WebSocket clients. Receivers are clients which are identified and subscribed.
 
@@ -45,21 +59,19 @@ class ReqClient(object):
 
 
         """
-        req_data = eventData
-        response = self.base_client.req('BroadcastCustomEvent', req_data)
-        return response
+        self.send("BroadcastCustomEvent", eventData)
 
-    def CallVendorRequest(self, vendorName, requestType, requestData=None):
+    def call_vendor_request(self, vendorName, requestType, requestData=None):
         """
         Call a request registered to a vendor.
-        
-        A vendor is a unique name registered by a 
-        third-party plugin or script, which allows 
+
+        A vendor is a unique name registered by a
+        third-party plugin or script, which allows
         for custom requests and events to be added
-        to obs-websocket. If a plugin or script 
-        implements vendor requests or events, 
+        to obs-websocket. If a plugin or script
+        implements vendor requests or events,
         documentation is expected to be provided with them.
-        
+
         :param vendorName:  Name of the vendor to use
         :type vendorName: str
         :param requestType: The request type to call
@@ -71,10 +83,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req(req_type=requestType, req_data=requestData)
-        return response
+        self.send(requestType, requestData)
 
-    def GetHotkeyList(self):
+    def get_hot_key_list(self):
         """
         Gets an array of all hotkey names in OBS
 
@@ -83,10 +94,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req('GetHotkeyList')
-        return response
-    
-    def TriggerHotkeyByName(self, hotkeyName):
+        return self.send("GetHotkeyList")
+
+    def trigger_hot_key_by_name(self, hotkeyName):
         """
         Triggers a hotkey using its name. For hotkey names
         See GetHotkeyList
@@ -96,11 +106,12 @@ class ReqClient(object):
 
 
         """
-        payload = {'hotkeyName': hotkeyName}
-        response = self.base_client.req('TriggerHotkeyByName', payload)
-        return response
-    
-    def TriggerHotkeyByKeySequence(self,keyId, pressShift, pressCtrl, pressAlt, pressCmd):
+        payload = {"hotkeyName": hotkeyName}
+        self.send("TriggerHotkeyByName", payload)
+
+    def trigger_hot_key_by_key_sequence(
+        self, keyId, pressShift, pressCtrl, pressAlt, pressCmd
+    ):
         """
         Triggers a hotkey using a sequence of keys.
 
@@ -120,21 +131,19 @@ class ReqClient(object):
 
         """
         payload = {
-            'keyId': keyId,
-            'keyModifiers': {
-                'shift': pressShift,
-                'control': pressCtrl,
-                'alt': pressAlt,
-                'cmd': pressCmd
-            }
+            "keyId": keyId,
+            "keyModifiers": {
+                "shift": pressShift,
+                "control": pressCtrl,
+                "alt": pressAlt,
+                "cmd": pressCmd,
+            },
         }
-        
-        response = self.base_client.req('TriggerHotkeyByKeySequence', payload)
-        return response
+        self.send("TriggerHotkeyByKeySequence", payload)
 
-    def Sleep(self, sleepMillis=None, sleepFrames=None):
+    def sleep(self, sleepMillis=None, sleepFrames=None):
         """
-        Sleeps for a time duration or number of frames. 
+        Sleeps for a time duration or number of frames.
         Only available in request batches with types SERIAL_REALTIME or SERIAL_FRAME
 
         :param sleepMillis: Number of milliseconds to sleep for (if SERIAL_REALTIME mode) 0 <= sleepMillis <= 50000
@@ -144,18 +153,14 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'sleepMillis': sleepMillis,
-            'sleepFrames': sleepFrames
-        }
-        response = self.base_client.req('Sleep', payload)
-        return response
+        payload = {"sleepMillis": sleepMillis, "sleepFrames": sleepFrames}
+        self.send("Sleep", payload)
 
-    def GetPersistentData(self, realm, slotName):
+    def get_persistent_data(self, realm, slotName):
         """
         Gets the value of a "slot" from the selected persistent data realm.
 
-        :param realm: The data realm to select 
+        :param realm: The data realm to select
                       OBS_WEBSOCKET_DATA_REALM_GLOBAL or OBS_WEBSOCKET_DATA_REALM_PROFILE
         :type realm: str
         :param slotName: The name of the slot to retrieve data from
@@ -165,18 +170,14 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'realm': realm,
-            'slotName': slotName
-        }
-        response = self.base_client.req('GetPersistentData', payload)
-        return response
+        payload = {"realm": realm, "slotName": slotName}
+        return self.send("GetPersistentData", payload)
 
-    def SetPersistentData(self, realm, slotName, slotValue):
+    def set_persistent_data(self, realm, slotName, slotValue):
         """
         Sets the value of a "slot" from the selected persistent data realm.
 
-        :param realm: The data realm to select. 
+        :param realm: The data realm to select.
                       OBS_WEBSOCKET_DATA_REALM_GLOBAL or OBS_WEBSOCKET_DATA_REALM_PROFILE
         :type realm: str
         :param slotName: The name of the slot to retrieve data from
@@ -186,15 +187,10 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'realm': realm,
-            'slotName': slotName,
-            'slotValue': slotValue
-        }
-        response = self.base_client.req('SetPersistentData', payload)
-        return response
+        payload = {"realm": realm, "slotName": slotName, "slotValue": slotValue}
+        self.send("SetPersistentData", payload)
 
-    def GetSceneCollectionList(self):
+    def get_scene_collection_list(self):
         """
         Gets an array of all scene collections
 
@@ -203,38 +199,34 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req('GetSceneCollectionList')
-        return response
+        return self.send("GetSceneCollectionList")
 
-    def SetCurrentSceneCollection(self, name):
+    def set_current_scene_collection(self, name):
         """
-        Creates a new scene collection, switching to it in the process
-        Note: This will block until the collection has finished changing
+        Switches to a scene collection.
 
         :param name: Name of the scene collection to switch to
         :type name: str
 
 
         """
-        payload = {'sceneCollectionName': name}
-        response = self.base_client.req('SetCurrentSceneCollection', payload)
-        return response
+        payload = {"sceneCollectionName": name}
+        self.send("SetCurrentSceneCollection", payload)
 
-    def CreateSceneCollection(self, name):
+    def create_scene_collection(self, name):
         """
         Creates a new scene collection, switching to it in the process.
         Note: This will block until the collection has finished changing.
-        
+
         :param name: Name for the new scene collection
         :type name: str
 
 
         """
-        payload = {'sceneCollectionName': name}
-        response = self.base_client.req('CreateSceneCollection', payload)
-        return response
+        payload = {"sceneCollectionName": name}
+        self.send("CreateSceneCollection", payload)
 
-    def GetProfileList(self):
+    def get_profile_list(self):
         """
         Gets a list of all profiles
 
@@ -243,10 +235,9 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req('GetProfileList')
-        return response
+        return self.send("GetProfileList")
 
-    def SetCurrentProfile(self, name):
+    def set_current_profile(self, name):
         """
         Switches to a profile
 
@@ -255,11 +246,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'profileName': name}
-        response = self.base_client.req('SetCurrentProfile', payload)
-        return response
-    
-    def CreateProfile(self, name):
+        payload = {"profileName": name}
+        self.send("SetCurrentProfile", payload)
+
+    def create_profile(self, name):
         """
         Creates a new profile, switching to it in the process
 
@@ -268,13 +258,12 @@ class ReqClient(object):
 
 
         """
-        payload = {'profileName': name}
-        response = self.base_client.req('CreateProfile', payload)
-        return response
+        payload = {"profileName": name}
+        self.send("CreateProfile", payload)
 
-    def RemoveProfile(self, name):
+    def remove_profile(self, name):
         """
-        Removes a profile. If the current profile is chosen, 
+        Removes a profile. If the current profile is chosen,
         it will change to a different profile first.
 
         :param name: Name of the profile to remove
@@ -282,13 +271,12 @@ class ReqClient(object):
 
 
         """
-        payload = {'profileName': name}
-        response = self.base_client.req('RemoveProfile', payload)
-        return response
+        payload = {"profileName": name}
+        self.send("RemoveProfile", payload)
 
-    def GetProfileParameter(self, category, name):
+    def get_profile_parameter(self, category, name):
         """
-        Gets a parameter from the current profile's configuration..
+        Gets a parameter from the current profile's configuration.
 
         :param category: Category of the parameter to get
         :type category: str
@@ -300,16 +288,12 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'parameterCategory': category,
-            'parameterName': name
-        }
-        response = self.base_client.req('GetProfileParameter', payload)
-        return response
+        payload = {"parameterCategory": category, "parameterName": name}
+        return self.send("GetProfileParameter", payload)
 
-    def SetProfileParameter(self, category, name, value):
+    def set_profile_parameter(self, category, name, value):
         """
-        Gets a parameter from the current profile's configuration..
+        Sets the value of a parameter in the current profile's configuration.
 
         :param category: Category of the parameter to set
         :type category: str
@@ -324,28 +308,28 @@ class ReqClient(object):
 
         """
         payload = {
-            'parameterCategory': category,
-            'parameterName': name,
-            'parameterValue': value
+            "parameterCategory": category,
+            "parameterName": name,
+            "parameterValue": value,
         }
-        response = self.base_client.req('SetProfileParameter', payload)
-        return response
+        self.send("SetProfileParameter", payload)
 
-    def GetVideoSettings(self):
+    def get_video_settings(self):
         """
         Gets the current video settings.
-        Note: To get the true FPS value, divide the FPS numerator by the FPS denominator. 
+        Note: To get the true FPS value, divide the FPS numerator by the FPS denominator.
         Example: 60000/1001
-        
+
 
         """
-        response = self.base_client.req('GetVideoSettings')
-        return response
+        return self.send("GetVideoSettings")
 
-    def SetVideoSettings(self, numerator, denominator, base_width, base_height, out_width, out_height):
+    def set_video_settings(
+        self, numerator, denominator, base_width, base_height, out_width, out_height
+    ):
         """
         Sets the current video settings.
-        Note: Fields must be specified in pairs. 
+        Note: Fields must be specified in pairs.
         For example, you cannot set only baseWidth without needing to specify baseHeight.
 
         :param numerator:    Numerator of the fractional FPS value  >=1
@@ -364,26 +348,24 @@ class ReqClient(object):
 
         """
         payload = {
-            'fpsNumerator': numerator,
-            'fpsDenominator': denominator,
-            'baseWidth': base_width,
-            'baseHeight': base_height,
-            'outputWidth': out_width,
-            'outputHeight': out_height
+            "fpsNumerator": numerator,
+            "fpsDenominator": denominator,
+            "baseWidth": base_width,
+            "baseHeight": base_height,
+            "outputWidth": out_width,
+            "outputHeight": out_height,
         }
-        response = self.base_client.req('SetVideoSettings', payload)
-        return response
+        self.send("SetVideoSettings", payload)
 
-    def GetStreamServiceSettings(self):
+    def get_stream_service_settings(self):
         """
         Gets the current stream service settings (stream destination).
 
-        
-        """
-        response = self.base_client.req('GetStreamServiceSettings')
-        return response
 
-    def SetStreamServiceSettings(self, ss_type, ss_settings):
+        """
+        return self.send("GetStreamServiceSettings")
+
+    def set_stream_service_settings(self, ss_type, ss_settings):
         """
         Sets the current stream service settings (stream destination).
         Note: Simple RTMP settings can be set with type rtmp_custom
@@ -397,13 +379,12 @@ class ReqClient(object):
 
         """
         payload = {
-            'streamServiceType': ss_type,
-            'streamServiceSettings': ss_settings,
+            "streamServiceType": ss_type,
+            "streamServiceSettings": ss_settings,
         }
-        response = self.base_client.req('SetStreamServiceSettings', payload)
-        return response
+        self.send("SetStreamServiceSettings", payload)
 
-    def GetSourceActive(self, name):
+    def get_source_active(self, name):
         """
         Gets the active and show state of a source
 
@@ -412,17 +393,16 @@ class ReqClient(object):
 
 
         """
-        payload = {'sourceName': name}
-        response = self.base_client.req('GetSourceActive', payload)
-        return response
+        payload = {"sourceName": name}
+        return self.send("GetSourceActive", payload)
 
-    def GetSourceScreenshot(self, name, img_format, width, height, quality):
+    def get_source_screenshot(self, name, img_format, width, height, quality):
         """
         Gets a Base64-encoded screenshot of a source.
-        The imageWidth and imageHeight parameters are 
-        treated as "scale to inner", meaning the smallest ratio 
-        will be used and the aspect ratio of the original resolution is kept. 
-        If imageWidth and imageHeight are not specified, the compressed image 
+        The imageWidth and imageHeight parameters are
+        treated as "scale to inner", meaning the smallest ratio
+        will be used and the aspect ratio of the original resolution is kept.
+        If imageWidth and imageHeight are not specified, the compressed image
         will use the full resolution of the source.
 
         :param name:    Name of the source to take a screenshot of
@@ -439,22 +419,23 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': name,
-            'imageFormat': img_format,
-            'imageWidth': width,
-            'imageHeight': height,
-            'imageCompressionQuality': quality
+            "sourceName": name,
+            "imageFormat": img_format,
+            "imageWidth": width,
+            "imageHeight": height,
+            "imageCompressionQuality": quality,
         }
-        response = self.base_client.req('GetSourceScreenshot', payload)
-        return response
+        return self.send("GetSourceScreenshot", payload)
 
-    def SaveSourceScreenshot(self, name, img_format, file_path, width, height, quality):
+    def save_source_screenshot(
+        self, name, img_format, file_path, width, height, quality
+    ):
         """
         Saves a Base64-encoded screenshot of a source.
-        The imageWidth and imageHeight parameters are 
-        treated as "scale to inner", meaning the smallest ratio 
-        will be used and the aspect ratio of the original resolution is kept. 
-        If imageWidth and imageHeight are not specified, the compressed image 
+        The imageWidth and imageHeight parameters are
+        treated as "scale to inner", meaning the smallest ratio
+        will be used and the aspect ratio of the original resolution is kept.
+        If imageWidth and imageHeight are not specified, the compressed image
         will use the full resolution of the source.
 
         :param name:        Name of the source to take a screenshot of
@@ -469,51 +450,47 @@ class ReqClient(object):
         :type height:       int
         :param quality:     Compression quality to use. 0 for high compression, 100 for uncompressed. -1 to use "default"
         :type quality:      int
-        
+
 
         """
         payload = {
-            'sourceName': name,
-            'imageFormat': img_format,
-            'imageFilePath': file_path,
-            'imageWidth': width,
-            'imageHeight': height,
-            'imageCompressionQuality': quality
+            "sourceName": name,
+            "imageFormat": img_format,
+            "imageFilePath": file_path,
+            "imageWidth": width,
+            "imageHeight": height,
+            "imageCompressionQuality": quality,
         }
-        response = self.base_client.req('SaveSourceScreenshot', payload)
-        return response
+        return self.send("SaveSourceScreenshot", payload)
 
-    def GetSceneList(self):
+    def get_scene_list(self):
         """
         Gets a list of all scenes in OBS.
-        
+
 
         """
-        response = self.base_client.req('GetSceneList')
-        return response
-    
-    def GetGroupList(self):
+        return self.send("GetSceneList")
+
+    def get_group_list(self):
         """
         Gets a list of all groups in OBS.
-        Groups in OBS are actually scenes, 
-        but renamed and modified. In obs-websocket, 
+        Groups in OBS are actually scenes,
+        but renamed and modified. In obs-websocket,
         we treat them as scenes where we can..
-        
+
 
         """
-        response = self.base_client.req('GetSceneList')
-        return response
+        return self.send("GetSceneList")
 
-    def GetCurrentProgramScene(self):
+    def get_current_program_scene(self):
         """
         Gets the current program scene.
 
 
         """
-        response = self.base_client.req('GetCurrentProgramScene')
-        return response
+        return self.send("GetCurrentProgramScene")
 
-    def SetCurrentProgramScene(self, name):
+    def set_current_program_scene(self, name):
         """
         Sets the current program scene
 
@@ -522,20 +499,18 @@ class ReqClient(object):
 
 
         """
-        payload = {'sceneName': name}
-        response = self.base_client.req('SetCurrentProgramScene', payload)
-        return response
+        payload = {"sceneName": name}
+        self.send("SetCurrentProgramScene", payload)
 
-    def GetCurrentPreviewScene(self):
+    def get_current_preview_scene(self):
         """
         Gets the current preview scene
-        
+
 
         """
-        response = self.base_client.req('GetCurrentPreviewScene')
-        return response
+        return self.send("GetCurrentPreviewScene")
 
-    def SetCurrentPreviewScene(self, name):
+    def set_current_preview_scene(self, name):
         """
         Sets the current program scene
 
@@ -544,11 +519,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'sceneName': name}
-        response = self.base_client.req('SetCurrentPreviewScene', payload)
-        return response
+        payload = {"sceneName": name}
+        self.send("SetCurrentPreviewScene", payload)
 
-    def CreateScene(self, name):
+    def create_scene(self, name):
         """
         Creates a new scene in OBS.
 
@@ -557,11 +531,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'sceneName': name }
-        response = self.base_client.req('CreateScene', payload)
-        return response
+        payload = {"sceneName": name}
+        self.send("CreateScene", payload)
 
-    def RemoveScene(self, name):
+    def remove_scene(self, name):
         """
         Removes a scene from OBS
 
@@ -570,11 +543,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'sceneName': name }
-        response = self.base_client.req('RemoveScene', payload)
-        return response
+        payload = {"sceneName": name}
+        self.send("RemoveScene", payload)
 
-    def SetSceneName(self, old_name, new_name):
+    def set_scene_name(self, old_name, new_name):
         """
         Sets the name of a scene (rename).
 
@@ -585,27 +557,22 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'sceneName': old_name,
-            'newSceneName': new_name
-        }
-        response = self.base_client.req('SetSceneName', payload)
-        return response
+        payload = {"sceneName": old_name, "newSceneName": new_name}
+        self.send("SetSceneName", payload)
 
-    def GetSceneSceneTransitionOverride(self, name):
+    def get_scene_scene_transition_override(self, name):
         """
         Gets the scene transition overridden for a scene.
 
         :param name: Name of the scene
         :type name: str
-        
+
 
         """
-        payload = {'sceneName': name}
-        response = self.base_client.req('GetSceneSceneTransitionOverride', payload)
-        return response
+        payload = {"sceneName": name}
+        return self.send("GetSceneSceneTransitionOverride", payload)
 
-    def SetSceneSceneTransitionOverride(self, scene_name, tr_name, tr_duration):
+    def set_scene_scene_transition_override(self, scene_name, tr_name, tr_duration):
         """
         Gets the scene transition overridden for a scene.
 
@@ -619,49 +586,47 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'transitionName': tr_name,
-            'transitionDuration': tr_duration
-            }
-        response = self.base_client.req('SetSceneSceneTransitionOverride', payload)
-        return response
+            "sceneName": scene_name,
+            "transitionName": tr_name,
+            "transitionDuration": tr_duration,
+        }
+        self.send("SetSceneSceneTransitionOverride", payload)
 
-    def GetInputList(self, kind):
+    def get_input_list(self, kind):
         """
         Gets a list of all inputs in OBS.
 
         :param kind: Restrict the list to only inputs of the specified kind
         :type kind: str
-        
+
 
         """
-        payload = {'inputKind': kind}
-        response = self.base_client.req('GetInputList', payload)
-        return response
+        payload = {"inputKind": kind}
+        return self.send("GetInputList", payload)
 
-    def GetInputKindList(self, unversioned):
+    def get_input_kind_list(self, unversioned):
         """
         Gets a list of all available input kinds in OBS.
 
         :param unversioned: True == Return all kinds as unversioned, False == Return with version suffixes (if available)
         :type unversioned: bool
-        
+
 
         """
-        payload = {'unversioned': unversioned}
-        response = self.base_client.req('GetInputKindList', payload)
-        return response
+        payload = {"unversioned": unversioned}
+        return self.send("GetInputKindList", payload)
 
-    def GetSpecialInputs(self):
+    def get_special_inputs(self):
         """
         Gets the name of all special inputs.
 
 
         """
-        response = self.base_client.req('GetSpecialInputs')
-        return response
+        return self.send("GetSpecialInputs")
 
-    def CreateInput(self, sceneName, inputName, inputKind, inputSettings, sceneItemEnabled):
+    def create_input(
+        self, sceneName, inputName, inputKind, inputSettings, sceneItemEnabled
+    ):
         """
         Creates a new input, adding it as a scene item to the specified scene.
 
@@ -675,20 +640,19 @@ class ReqClient(object):
         :type inputSettings:        object
         :param sceneItemEnabled: 	Whether to set the created scene item to enabled or disabled
         :type sceneItemEnabled:     bool
-                
+
 
         """
         payload = {
-            'sceneName': sceneName,
-            'inputName': inputName,
-            'inputKind': inputKind,
-            'inputSettings': inputSettings,
-            'sceneItemEnabled': sceneItemEnabled
+            "sceneName": sceneName,
+            "inputName": inputName,
+            "inputKind": inputKind,
+            "inputSettings": inputSettings,
+            "sceneItemEnabled": sceneItemEnabled,
         }
-        response = self.base_client.req('CreateInput', payload)
-        return response
+        self.send("CreateInput", payload)
 
-    def RemoveInput(self, name):
+    def remove_input(self, name):
         """
         Removes an existing input
 
@@ -697,11 +661,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('RemoveInput', payload)
-        return response
+        payload = {"inputName": name}
+        self.send("RemoveInput", payload)
 
-    def SetInputName(self, old_name, new_name):
+    def set_input_name(self, old_name, new_name):
         """
         Sets the name of an input (rename).
 
@@ -712,42 +675,36 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': old_name,
-            'newInputName': new_name
-        }
-        response = self.base_client.req('SetInputName', payload)
-        return response
+        payload = {"inputName": old_name, "newInputName": new_name}
+        self.send("SetInputName", payload)
 
-    def GetInputDefaultSettings(self, kind):
+    def get_input_default_settings(self, kind):
         """
         Gets the default settings for an input kind.
 
         :param kind: Input kind to get the default settings for
         :type kind:  str
-        
+
 
         """
-        payload = {'inputKind': kind}
-        response = self.base_client.req('GetInputDefaultSettings', payload)
-        return response
+        payload = {"inputKind": kind}
+        return self.send("GetInputDefaultSettings", payload)
 
-    def GetInputSettings(self, name):
+    def get_input_settings(self, name):
         """
         Gets the settings of an input.
-        Note: Does not include defaults. To create the entire settings object, 
+        Note: Does not include defaults. To create the entire settings object,
         overlay inputSettings over the defaultInputSettings provided by GetInputDefaultSettings.
 
         :param name: Input kind to get the default settings for
         :type name:  str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputSettings', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputSettings", payload)
 
-    def SetInputSettings(self, name, settings, overlay):
+    def set_input_settings(self, name, settings, overlay):
         """
         Sets the settings of an input.
 
@@ -757,31 +714,25 @@ class ReqClient(object):
         :type settings:  dict
         :param overlay: True == apply the settings on top of existing ones, False == reset the input to its defaults, then apply settings.
         :type overlay:  bool
-        
+
 
         """
-        payload = {
-            'inputName': name,
-            'inputSettings': settings,
-            'overlay': overlay
-            }
-        response = self.base_client.req('SetInputSettings', payload)
-        return response
+        payload = {"inputName": name, "inputSettings": settings, "overlay": overlay}
+        self.send("SetInputSettings", payload)
 
-    def GetInputMute(self, name):
+    def get_input_mute(self, name):
         """
         Gets the audio mute state of an input
 
         :param name:    Name of input to get the mute state of
         :type name:     str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputMute', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputMute", payload)
 
-    def SetInputMute(self, name, muted):
+    def set_input_mute(self, name, muted):
         """
         Sets the audio mute state of an input.
 
@@ -792,40 +743,34 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'inputMuted': muted
-         }
-        response = self.base_client.req('SetInputMute', payload)
-        return response
+        payload = {"inputName": name, "inputMuted": muted}
+        self.send("SetInputMute", payload)
 
-    def ToggleInputMute(self, name):
+    def toggle_input_mute(self, name):
         """
         Toggles the audio mute state of an input.
 
         :param name:    Name of the input to toggle the mute state of
         :type name:     str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('ToggleInputMute', payload)
-        return response
+        payload = {"inputName": name}
+        self.send("ToggleInputMute", payload)
 
-    def GetInputVolume(self, name):
+    def get_input_volume(self, name):
         """
         Gets the current volume setting of an input.
 
         :param name:    Name of the input to get the volume of
         :type name:     str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputVolume', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputVolume", payload)
 
-    def SetInputVolume(self, name, vol_mul=None, vol_db=None):
+    def set_input_volume(self, name, vol_mul=None, vol_db=None):
         """
         Sets the volume setting of an input.
 
@@ -839,30 +784,28 @@ class ReqClient(object):
 
         """
         payload = {
-            'inputName': name,
-            'inputVolumeMul': vol_mul,
-            'inputVolumeDb': vol_db
+            "inputName": name,
+            "inputVolumeMul": vol_mul,
+            "inputVolumeDb": vol_db,
         }
-        response = self.base_client.req('SetInputVolume', payload)
-        return response
+        self.send("SetInputVolume", payload)
 
-    def GetInputAudioBalance(self, name):
+    def get_input_audio_balance(self, name):
         """
         Gets the audio balance of an input.
-        
+
         :param name: Name of the input to get the audio balance of
         :type name:  str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputAudioBalance', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputAudioBalance", payload)
 
-    def SetInputAudioBalance(self, name, balance):
+    def set_input_audio_balance(self, name, balance):
         """
         Sets the audio balance of an input.
-        
+
         :param name: Name of the input to get the audio balance of
         :type name:  str
         :param balance: New audio balance value (>= 0.0, <= 1.0)
@@ -870,30 +813,25 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'inputAudioBalance': balance
-        }
-        response = self.base_client.req('SetInputAudioBalance', payload)
-        return response
+        payload = {"inputName": name, "inputAudioBalance": balance}
+        self.send("SetInputAudioBalance", payload)
 
-    def GetInputAudioOffset(self, name):
+    def get_input_audio_sync_offset(self, name):
         """
         Gets the audio sync offset of an input.
-        
+
         :param name: Name of the input to get the audio sync offset of
         :type name:  str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputAudioOffset', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputAudioSyncOffset", payload)
 
-    def SetInputAudioSyncOffset(self, name, offset):
+    def set_input_audio_sync_offset(self, name, offset):
         """
         Sets the audio sync offset of an input.
-        
+
         :param name: Name of the input to set the audio sync offset of
         :type name:  str
         :param offset: New audio sync offset in milliseconds (>= -950, <= 20000)
@@ -901,14 +839,10 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'inputAudioSyncOffset': offset
-        }
-        response = self.base_client.req('SetInputAudioSyncOffset', payload)
-        return response
+        payload = {"inputName": name, "inputAudioSyncOffset": offset}
+        self.send("SetInputAudioSyncOffset", payload)
 
-    def GetInputAudioMonitorType(self, name):
+    def get_input_audio_monitor_type(self, name):
         """
         Gets the audio monitor type of an input.
 
@@ -917,20 +851,19 @@ class ReqClient(object):
             OBS_MONITORING_TYPE_MONITOR_ONLY
             OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT
 
-        
+
         :param name: Name of the input to get the audio monitor type of
         :type name:  str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputAudioMonitorType', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputAudioMonitorType", payload)
 
-    def SetInputAudioMonitorType(self, name, mon_type):
+    def set_input_audio_monitor_type(self, name, mon_type):
         """
         Sets the audio monitor type of an input.
-        
+
         :param name: Name of the input to set the audio monitor type of
         :type name:  str
         :param mon_type:  	Audio monitor type
@@ -938,30 +871,25 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'monitorType': mon_type
-        }
-        response = self.base_client.req('SetInputAudioMonitorType', payload)
-        return response
+        payload = {"inputName": name, "monitorType": mon_type}
+        self.send("SetInputAudioMonitorType", payload)
 
-    def GetInputAudioTracks(self, name):
+    def get_input_audio_tracks(self, name):
         """
         Gets the enable state of all audio tracks of an input.
 
         :param name: Name of the input
         :type name:  str
-        
+
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetInputAudioTracks', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetInputAudioTracks", payload)
 
-    def SetInputAudioTracks(self, name, track):
+    def set_input_audio_tracks(self, name, track):
         """
-        Sets the audio monitor type of an input.
-        
+        Sets the enable state of audio tracks of an input.
+
         :param name: Name of the input
         :type name:  str
         :param track: Track settings to apply
@@ -969,39 +897,31 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'inputAudioTracks': track
-        }
-        response = self.base_client.req('SetInputAudioTracks', payload)
-        return response
+        payload = {"inputName": name, "inputAudioTracks": track}
+        self.send("SetInputAudioTracks", payload)
 
-    def GetInputPropertiesListPropertyItems(self, input_name, prop_name):
+    def get_input_properties_list_property_items(self, input_name, prop_name):
         """
         Gets the items of a list property from an input's properties.
-        Note: Use this in cases where an input provides a dynamic, 
-        selectable list of items. For example, display capture, 
+        Note: Use this in cases where an input provides a dynamic,
+        selectable list of items. For example, display capture,
         where it provides a list of available displays.
 
         :param input_name:  Name of the input
         :type input_name:   str
         :param prop_name:   Name of the list property to get the items of
         :type prop_name:    str
-        
+
 
         """
-        payload = {
-            'inputName': input_name,
-            'propertyName': prop_name
-        }
-        response = self.base_client.req('GetInputPropertiesListPropertyItems', payload)
-        return response
+        payload = {"inputName": input_name, "propertyName": prop_name}
+        return self.send("GetInputPropertiesListPropertyItems", payload)
 
-    def PressInputPropertiesButton(self, input_name, prop_name):
+    def press_input_properties_button(self, input_name, prop_name):
         """
         Presses a button in the properties of an input.
-        Note: Use this in cases where there is a button 
-        in the properties of an input that cannot be accessed in any other way. 
+        Note: Use this in cases where there is a button
+        in the properties of an input that cannot be accessed in any other way.
         For example, browser sources, where there is a refresh button.
 
         :param input_name:  Name of the input
@@ -1011,42 +931,35 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': input_name,
-            'propertyName': prop_name
-        }
-        response = self.base_client.req('PressInputPropertiesButton', payload)
-        return response
+        payload = {"inputName": input_name, "propertyName": prop_name}
+        self.send("PressInputPropertiesButton", payload)
 
-    def GetTransitionKindList(self):
+    def get_transition_kind_list(self):
         """
         Gets an array of all available transition kinds.
         Similar to GetInputKindList
-        
+
 
         """
-        response = self.base_client.req('GetTransitionKindList')
-        return response
+        return self.send("GetTransitionKindList")
 
-    def GetSceneTransitionList(self):
-        """
-        Gets an array of all scene transitions in OBS.
-        
-
-        """
-        response = self.base_client.req('GetSceneTransitionList')
-        return response
-
-    def GetCurrentSceneTransition(self):
+    def get_scene_transition_list(self):
         """
         Gets an array of all scene transitions in OBS.
-        
+
 
         """
-        response = self.base_client.req('GetCurrentSceneTransition')
-        return response
+        return self.send("GetSceneTransitionList")
 
-    def SetCurrentSceneTransition(self, name):
+    def get_current_scene_transition(self):
+        """
+        Gets an array of all scene transitions in OBS.
+
+
+        """
+        return self.send("GetCurrentSceneTransition")
+
+    def set_current_scene_transition(self, name):
         """
         Sets the current scene transition.
         Small note: While the namespace of scene transitions is generally unique,
@@ -1057,11 +970,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'transitionName': name}
-        response = self.base_client.req('SetCurrentSceneTransition', payload)
-        return response
-    
-    def SetCurrentSceneTransitionDuration(self, duration):
+        payload = {"transitionName": name}
+        self.send("SetCurrentSceneTransition", payload)
+
+    def set_current_scene_transition_duration(self, duration):
         """
         Sets the duration of the current scene transition, if it is not fixed.
 
@@ -1070,11 +982,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'transitionDuration': duration}
-        response = self.base_client.req('SetCurrentSceneTransitionDuration', payload)
-        return response
+        payload = {"transitionDuration": duration}
+        self.send("SetCurrentSceneTransitionDuration", payload)
 
-    def SetCurrentSceneTransitionSettings(self, settings, overlay=None):
+    def set_current_scene_transition_settings(self, settings, overlay=None):
         """
         Sets the settings of the current scene transition.
 
@@ -1085,39 +996,33 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'transitionSettings': settings,
-            'overlay': overlay
-        }
-        response = self.base_client.req('SetCurrentSceneTransitionSettings', payload)
-        return response
+        payload = {"transitionSettings": settings, "overlay": overlay}
+        self.send("SetCurrentSceneTransitionSettings", payload)
 
-    def GetCurrentSceneTransitionCursor(self):
+    def get_current_scene_transition_cursor(self):
         """
         Gets the cursor position of the current scene transition.
         Note: transitionCursor will return 1.0 when the transition is inactive.
-        
+
 
         """
-        response = self.base_client.req('GetCurrentSceneTransitionCursor')
-        return response
+        return self.send("GetCurrentSceneTransitionCursor")
 
-    def TriggerStudioModeTransition(self):
+    def trigger_studio_mode_transition(self):
         """
-        Triggers the current scene transition. 
+        Triggers the current scene transition.
         Same functionality as the Transition button in studio mode.
-        Note: Studio mode should be active. if not throws an  
+        Note: Studio mode should be active. if not throws an
         RequestStatus::StudioModeNotActive (506) in response
 
 
         """
-        response = self.base_client.req('TriggerStudioModeTransition')
-        return response
+        self.send("TriggerStudioModeTransition")
 
-    def SetTBarPosition(self, pos, release=None):
+    def set_t_bar_position(self, pos, release=None):
         """
         Sets the position of the TBar.
-        Very important note: This will be deprecated 
+        Very important note: This will be deprecated
         and replaced in a future version of obs-websocket.
 
         :param pos: New position  (>= 0.0, <= 1.0)
@@ -1127,40 +1032,36 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'position': pos,
-            'release': release
-        }
-        response = self.base_client.req('SetTBarPosition', payload)
-        return response
+        payload = {"position": pos, "release": release}
+        self.send("SetTBarPosition", payload)
 
-    def GetSourceFilterList(self, name):
+    def get_source_filter_list(self, name):
         """
         Gets a list of all of a source's filters.
 
         :param name: Name of the source
         :type name:  str
-        
+
 
         """
-        payload = {'sourceName': name}
-        response = self.base_client.req('GetSourceFilterList', payload)
-        return response
+        payload = {"sourceName": name}
+        return self.send("GetSourceFilterList", payload)
 
-    def GetSourceFilterDefaultSettings(self, kind):
+    def get_source_filter_default_settings(self, kind):
         """
         Gets the default settings for a filter kind.
 
         :param kind: Filter kind to get the default settings for
         :type kind:  str
-        
+
 
         """
-        payload = {'filterKind': kind}
-        response = self.base_client.req('GetSourceFilterDefaultSettings', payload)
-        return response
+        payload = {"filterKind": kind}
+        return self.send("GetSourceFilterDefaultSettings", payload)
 
-    def CreateSourceFilter(self, source_name, filter_name, filter_kind, filter_settings=None):
+    def create_source_filter(
+        self, source_name, filter_name, filter_kind, filter_settings=None
+    ):
         """
         Gets the default settings for a filter kind.
 
@@ -1176,15 +1077,14 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': filter_name,
-            'filterKind': filter_kind,
-            'filterSettings': filter_settings
+            "sourceName": source_name,
+            "filterName": filter_name,
+            "filterKind": filter_kind,
+            "filterSettings": filter_settings,
         }
-        response = self.base_client.req('CreateSourceFilter', payload)
-        return response
+        self.send("CreateSourceFilter", payload)
 
-    def RemoveSourceFilter(self, source_name, filter_name):
+    def remove_source_filter(self, source_name, filter_name):
         """
         Gets the default settings for a filter kind.
 
@@ -1196,13 +1096,12 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': filter_name,
+            "sourceName": source_name,
+            "filterName": filter_name,
         }
-        response = self.base_client.req('RemoveSourceFilter', payload)
-        return response
+        self.send("RemoveSourceFilter", payload)
 
-    def SetSourceFilterName(self, source_name, old_filter_name, new_filter_name):
+    def set_source_filter_name(self, source_name, old_filter_name, new_filter_name):
         """
         Sets the name of a source filter (rename).
 
@@ -1216,14 +1115,13 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': old_filter_name,
-            'newFilterName': new_filter_name,
+            "sourceName": source_name,
+            "filterName": old_filter_name,
+            "newFilterName": new_filter_name,
         }
-        response = self.base_client.req('SetSourceFilterName', payload)
-        return response
+        self.send("SetSourceFilterName", payload)
 
-    def GetSourceFilter(self, source_name, filter_name):
+    def get_source_filter(self, source_name, filter_name):
         """
         Gets the info for a specific source filter.
 
@@ -1231,19 +1129,15 @@ class ReqClient(object):
         :type source_name:  str
         :param filter_name: Name of the filter
         :type filter_name:  str
-        
+
 
         """
-        payload = {
-            'sourceName': source_name,
-            'filterName': filter_name
-        }
-        response = self.base_client.req('GetSourceFilter', payload)
-        return response
+        payload = {"sourceName": source_name, "filterName": filter_name}
+        return self.send("GetSourceFilter", payload)
 
-    def SetSourceFilterIndex(self, source_name, filter_name, filter_index):
+    def set_source_filter_index(self, source_name, filter_name, filter_index):
         """
-        Gets the info for a specific source filter.
+        Sets the index position of a filter on a source.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1255,16 +1149,17 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': filter_name,
-            'filterIndex': filter_index
+            "sourceName": source_name,
+            "filterName": filter_name,
+            "filterIndex": filter_index,
         }
-        response = self.base_client.req('SetSourceFilterIndex', payload)
-        return response
+        self.send("SetSourceFilterIndex", payload)
 
-    def SetSourceFilterSettings(self, source_name, filter_name, settings, overlay=None):
+    def set_source_filter_settings(
+        self, source_name, filter_name, settings, overlay=None
+    ):
         """
-        Gets the info for a specific source filter.
+        Sets the settings of a source filter.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1278,17 +1173,16 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': filter_name,
-            'filterSettings': settings,
-            'overlay': overlay
+            "sourceName": source_name,
+            "filterName": filter_name,
+            "filterSettings": settings,
+            "overlay": overlay,
         }
-        response = self.base_client.req('SetSourceFilterSettings', payload)
-        return response
+        self.send("SetSourceFilterSettings", payload)
 
-    def SetSourceFilterEnabled(self, source_name, filter_name, enabled):
+    def set_source_filter_enabled(self, source_name, filter_name, enabled):
         """
-        Gets the info for a specific source filter.
+        Sets the enable state of a source filter.
 
         :param source_name: Name of the source the filter is on
         :type source_name:  str
@@ -1300,40 +1194,37 @@ class ReqClient(object):
 
         """
         payload = {
-            'sourceName': source_name,
-            'filterName': filter_name,
-            'filterEnabled': enabled
+            "sourceName": source_name,
+            "filterName": filter_name,
+            "filterEnabled": enabled,
         }
-        response = self.base_client.req('SetSourceFilterEnabled', payload)
-        return response
+        self.send("SetSourceFilterEnabled", payload)
 
-    def GetSceneItemList(self, name):
+    def get_scene_item_list(self, name):
         """
         Gets a list of all scene items in a scene.
 
         :param name: Name of the scene to get the items of
         :type name: str
-        
+
 
         """
-        payload = {'sceneName': name}
-        response = self.base_client.req('GetSceneItemList', payload)
-        return response
+        payload = {"sceneName": name}
+        return self.send("GetSceneItemList", payload)
 
-    def GetGroupItemList(self, name):
+    def get_group_item_list(self, name):
         """
         Gets a list of all scene items in a scene.
 
         :param name: Name of the group to get the items of
         :type name: str
-        
+
 
         """
-        payload = {'sceneName': name}
-        response = self.base_client.req('GetGroupItemList', payload)
-        return response
+        payload = {"sceneName": name}
+        return self.send("GetGroupItemList", payload)
 
-    def GetSceneItemId(self, scene_name, source_name, offset=None):
+    def get_scene_item_id(self, scene_name, source_name, offset=None):
         """
         Searches a scene for a source, and returns its id.
 
@@ -1343,18 +1234,17 @@ class ReqClient(object):
         :type source_name: str
         :param offset:  	Number of matches to skip during search. >= 0 means first forward. -1 means last (top) item (>= -1)
         :type offset: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sourceName': source_name,
-            'searchOffset': offset
+            "sceneName": scene_name,
+            "sourceName": source_name,
+            "searchOffset": offset,
         }
-        response = self.base_client.req('GetSceneItemId', payload)
-        return response
+        return self.send("GetSceneItemId", payload)
 
-    def CreateSceneItem(self, scene_name, source_name, enabled=None):
+    def create_scene_item(self, scene_name, source_name, enabled=None):
         """
         Creates a new scene item using a source.
         Scenes only
@@ -1365,18 +1255,17 @@ class ReqClient(object):
         :type source_name: str
         :param enabled: Enable state to apply to the scene item on creation
         :type enabled: bool
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sourceName': source_name,
-            'sceneItemEnabled': enabled
+            "sceneName": scene_name,
+            "sourceName": source_name,
+            "sceneItemEnabled": enabled,
         }
-        response = self.base_client.req('CreateSceneItem', payload)
-        return response
+        self.send("CreateSceneItem", payload)
 
-    def RemoveSceneItem(self, scene_name, item_id):
+    def remove_scene_item(self, scene_name, item_id):
         """
         Removes a scene item from a scene.
         Scenes only
@@ -1389,13 +1278,12 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('RemoveSceneItem', payload)
-        return response
+        self.send("RemoveSceneItem", payload)
 
-    def DuplicateSceneItem(self, scene_name, item_id, dest_scene_name=None):
+    def duplicate_scene_item(self, scene_name, item_id, dest_scene_name=None):
         """
         Duplicates a scene item, copying all transform and crop info.
         Scenes only
@@ -1406,18 +1294,17 @@ class ReqClient(object):
         :type item_id: int
         :param dest_scene_name: Name of the scene to create the duplicated item in
         :type dest_scene_name: str
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'destinationSceneName': dest_scene_name
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "destinationSceneName": dest_scene_name,
         }
-        response = self.base_client.req('DuplicateSceneItem', payload)
-        return response
+        self.send("DuplicateSceneItem", payload)
 
-    def GetSceneItemTransform(self, scene_name, item_id):
+    def get_scene_item_transform(self, scene_name, item_id):
         """
         Gets the transform and crop info of a scene item.
         Scenes and Groups
@@ -1426,17 +1313,16 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('GetSceneItemTransform', payload)
-        return response
+        return self.send("GetSceneItemTransform", payload)
 
-    def SetSceneItemTransform(self, scene_name, item_id, transform):
+    def set_scene_item_transform(self, scene_name, item_id, transform):
         """
         Sets the transform and crop info of a scene item.
 
@@ -1448,14 +1334,13 @@ class ReqClient(object):
         :type transform: dict
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'sceneItemTransform': transform
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "sceneItemTransform": transform,
         }
-        response = self.base_client.req('SetSceneItemTransform', payload)
-        return response
+        self.send("SetSceneItemTransform", payload)
 
-    def GetSceneItemEnabled(self, scene_name, item_id):
+    def get_scene_item_enabled(self, scene_name, item_id):
         """
         Gets the enable state of a scene item.
         Scenes and Groups
@@ -1464,17 +1349,16 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('GetSceneItemEnabled', payload)
-        return response
+        return self.send("GetSceneItemEnabled", payload)
 
-    def SetSceneItemEnabled(self, scene_name, item_id, enabled):
+    def set_scene_item_enabled(self, scene_name, item_id, enabled):
         """
         Sets the enable state of a scene item.
         Scenes and Groups'
@@ -1489,14 +1373,13 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'sceneItemEnabled': enabled
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "sceneItemEnabled": enabled,
         }
-        response = self.base_client.req('SetSceneItemEnabled', payload)
-        return response
+        self.send("SetSceneItemEnabled", payload)
 
-    def GetSceneItemLocked(self, scene_name, item_id):
+    def get_scene_item_locked(self, scene_name, item_id):
         """
         Gets the lock state of a scene item.
         Scenes and Groups
@@ -1505,17 +1388,16 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('GetSceneItemLocked', payload)
-        return response
+        return self.send("GetSceneItemLocked", payload)
 
-    def SetSceneItemLocked(self, scene_name, item_id, locked):
+    def set_scene_item_locked(self, scene_name, item_id, locked):
         """
         Sets the lock state of a scene item.
         Scenes and Groups
@@ -1530,14 +1412,13 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'sceneItemLocked': locked
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "sceneItemLocked": locked,
         }
-        response = self.base_client.req('SetSceneItemLocked', payload)
-        return response
+        self.send("SetSceneItemLocked", payload)
 
-    def GetSceneItemIndex(self, scene_name, item_id):
+    def get_scene_item_index(self, scene_name, item_id):
         """
         Gets the index position of a scene item in a scene.
         An index of 0 is at the bottom of the source list in the UI.
@@ -1547,17 +1428,16 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('GetSceneItemIndex', payload)
-        return response
+        return self.send("GetSceneItemIndex", payload)
 
-    def SetSceneItemIndex(self, scene_name, item_id, item_index):
+    def set_scene_item_index(self, scene_name, item_id, item_index):
         """
         Sets the index position of a scene item in a scene.
         Scenes and Groups
@@ -1572,18 +1452,17 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'sceneItemLocked': item_index
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "sceneItemLocked": item_index,
         }
-        response = self.base_client.req('SetSceneItemIndex', payload)
-        return response
+        self.send("SetSceneItemIndex", payload)
 
-    def GetSceneItemBlendMode(self, scene_name, item_id):
+    def get_scene_item_blend_mode(self, scene_name, item_id):
         """
         Gets the blend mode of a scene item.
         Blend modes:
-        
+
             OBS_BLEND_NORMAL
             OBS_BLEND_ADDITIVE
             OBS_BLEND_SUBTRACT
@@ -1597,17 +1476,16 @@ class ReqClient(object):
         :type scene_name: str
         :param item_id: Numeric ID of the scene item (>= 0)
         :type item_id: int
-        
+
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
         }
-        response = self.base_client.req('GetSceneItemBlendMode', payload)
-        return response
+        return self.send("GetSceneItemBlendMode", payload)
 
-    def SetSceneItemBlendMode(self, scene_name, item_id, blend):
+    def set_scene_item_blend_mode(self, scene_name, item_id, blend):
         """
         Sets the blend mode of a scene item.
         Scenes and Groups
@@ -1622,140 +1500,125 @@ class ReqClient(object):
 
         """
         payload = {
-            'sceneName': scene_name,
-            'sceneItemId': item_id,
-            'sceneItemBlendMode': blend
+            "sceneName": scene_name,
+            "sceneItemId": item_id,
+            "sceneItemBlendMode": blend,
         }
-        response = self.base_client.req('SetSceneItemBlendMode', payload)
-        return response
+        self.send("SetSceneItemBlendMode", payload)
 
-    def GetVirtualCamStatus(self):
+    def get_virtual_cam_status(self):
         """
         Gets the status of the virtualcam output.
-        
+
 
         """
-        response = self.base_client.req('GetVirtualCamStatus')
-        return response
+        return self.send("GetVirtualCamStatus")
 
-    def ToggleVirtualCam(self):
+    def toggle_virtual_cam(self):
         """
         Toggles the state of the virtualcam output.
-        
+
 
         """
-        response = self.base_client.req('ToggleVirtualCam')
-        return response
+        self.send("ToggleVirtualCam")
 
-    def StartVirtualCam(self):
+    def start_virtual_cam(self):
         """
         Starts the virtualcam output.
 
 
         """
-        response = self.base_client.req('StartVirtualCam')
-        return response
+        self.send("StartVirtualCam")
 
-    def StopVirtualCam(self):
+    def stop_virtual_cam(self):
         """
         Stops the virtualcam output.
 
 
         """
-        response = self.base_client.req('StopVirtualCam')
-        return response
+        self.send("StopVirtualCam")
 
-    def GetReplayBufferStatus(self):
+    def get_replay_buffer_status(self):
         """
         Gets the status of the replay buffer output.
 
 
         """
-        response = self.base_client.req('GetReplayBufferStatus')
-        return response
+        return self.send("GetReplayBufferStatus")
 
-    def ToggleReplayBuffer(self):
+    def toggle_replay_buffer(self):
         """
         Toggles the state of the replay buffer output.
-        
+
 
         """
-        response = self.base_client.req('ToggleReplayBuffer')
-        return response
+        self.send("ToggleReplayBuffer")
 
-    def StartReplayBuffer(self):
+    def start_replay_buffer(self):
         """
         Starts the replay buffer output.
 
 
         """
-        response = self.base_client.req('StartReplayBuffer')
-        return response
+        self.send("StartReplayBuffer")
 
-    def StopReplayBuffer(self):
+    def stop_replay_buffer(self):
         """
         Stops the replay buffer output.
 
 
         """
-        response = self.base_client.req('StopReplayBuffer')
-        return response
+        self.send("StopReplayBuffer")
 
-    def SaveReplayBuffer(self):
+    def save_replay_buffer(self):
         """
         Saves the contents of the replay buffer output.
 
 
         """
-        response = self.base_client.req('SaveReplayBuffer')
-        return response
+        self.send("SaveReplayBuffer")
 
-    def GetLastReplayBufferReplay(self):
+    def get_last_replay_buffer_replay(self):
         """
         Gets the filename of the last replay buffer save file.
-        
+
 
         """
-        response = self.base_client.req('GetLastReplayBufferReplay')
-        return response
+        return self.send("GetLastReplayBufferReplay")
 
-    def GetStreamStatus(self):
+    def get_stream_status(self):
         """
         Gets the status of the stream output.
-        
+
 
         """
-        response = self.base_client.req('GetStreamStatus')
-        return response
+        return self.send("GetStreamStatus")
 
-    def ToggleStream(self):
+    def toggle_stream(self):
         """
         Toggles the status of the stream output.
-        
+
 
         """
-        response = self.base_client.req('ToggleStream')
-        return response
+        self.send("ToggleStream")
 
-    def StartStream(self):
+    def start_stream(self):
         """
         Starts the stream output.
 
 
         """
-        response = self.base_client.req('StartStream')
-        return response
+        self.send("StartStream")
 
-    def StopStream(self):
+    def stop_stream(self):
         """
         Stops the stream output.
 
 
         """
-        response = self.base_client.req('StopStream')
-        return response
+        self.send("StopStream")
 
-    def SendStreamCaption(self, caption):
+    def send_stream_caption(self, caption):
         """
         Sends CEA-608 caption text over the stream output.
 
@@ -1764,73 +1627,65 @@ class ReqClient(object):
 
 
         """
-        response = self.base_client.req('SendStreamCaption')
-        return response
+        self.send("SendStreamCaption")
 
-    def GetRecordStatus(self):
+    def get_record_status(self):
         """
         Gets the status of the record output.
-        
+
 
         """
-        response = self.base_client.req('GetRecordStatus')
-        return response
+        return self.send("GetRecordStatus")
 
-    def ToggleRecord(self):
+    def toggle_record(self):
         """
         Toggles the status of the record output.
 
 
         """
-        response = self.base_client.req('ToggleRecord')
-        return response
+        self.send("ToggleRecord")
 
-    def StartRecord(self):
+    def start_record(self):
         """
         Starts the record output.
 
 
         """
-        response = self.base_client.req('StartRecord')
-        return response
+        self.send("StartRecord")
 
-    def StopRecord(self):
+    def stop_record(self):
         """
         Stops the record output.
 
 
         """
-        response = self.base_client.req('StopRecord')
-        return response
+        self.send("StopRecord")
 
-    def ToggleRecordPause(self):
+    def toggle_record_pause(self):
         """
         Toggles pause on the record output.
 
 
         """
-        response = self.base_client.req('ToggleRecordPause')
-        return response
+        self.send("ToggleRecordPause")
 
-    def PauseRecord(self):
+    def pause_record(self):
         """
         Pauses the record output.
 
 
         """
-        response = self.base_client.req('PauseRecord')
-        return response
+        self.send("PauseRecord")
 
-    def ResumeRecord(self):
+    def resume_record(self):
         """
         Resumes the record output.
 
 
         """
-        response = self.base_client.req('ResumeRecord')
-        return response
+        self.send("ResumeRecord")
 
-    def GetMediaInputStatus(self, name):
+    def get_media_input_status(self, name):
         """
         Gets the status of a media input.
 
@@ -1849,11 +1704,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('GetMediaInputStatus', payload)
-        return response
+        payload = {"inputName": name}
+        return self.send("GetMediaInputStatus", payload)
 
-    def SetMediaInputCursor(self, name, cursor):
+    def set_media_input_cursor(self, name, cursor):
         """
         Sets the cursor position of a media input.
         This request does not perform bounds checking of the cursor position.
@@ -1865,14 +1719,10 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'mediaCursor': cursor
-        }
-        response = self.base_client.req('SetMediaInputCursor', payload)
-        return response
+        payload = {"inputName": name, "mediaCursor": cursor}
+        self.send("SetMediaInputCursor", payload)
 
-    def OffsetMediaInputCursor(self, name, offset):
+    def offset_media_input_cursor(self, name, offset):
         """
         Offsets the current cursor position of a media input by the specified value.
         This request does not perform bounds checking of the cursor position.
@@ -1884,14 +1734,10 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'mediaCursorOffset': offset
-        }
-        response = self.base_client.req('OffsetMediaInputCursor', payload)
-        return response
+        payload = {"inputName": name, "mediaCursorOffset": offset}
+        self.send("OffsetMediaInputCursor", payload)
 
-    def TriggerMediaInputAction(self, name, action):
+    def trigger_media_input_action(self, name, action):
         """
         Triggers an action on a media input.
 
@@ -1902,23 +1748,18 @@ class ReqClient(object):
 
 
         """
-        payload = {
-            'inputName': name,
-            'mediaAction': action
-        }
-        response = self.base_client.req('TriggerMediaInputAction', payload)
-        return response
+        payload = {"inputName": name, "mediaAction": action}
+        self.send("TriggerMediaInputAction", payload)
 
-    def GetStudioModeEnabled(self):
+    def get_studio_mode_enabled(self):
         """
         Gets whether studio is enabled.
-        
+
 
         """
-        response = self.base_client.req('GetStudioModeEnabled')
-        return response
+        return self.send("GetStudioModeEnabled")
 
-    def SetStudioModeEnabled(self, enabled):
+    def set_studio_mode_enabled(self, enabled):
         """
         Enables or disables studio mode
 
@@ -1927,11 +1768,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'studioModeEnabled': enabled}
-        response = self.base_client.req('SetStudioModeEnabled', payload)
-        return response
+        payload = {"studioModeEnabled": enabled}
+        self.send("SetStudioModeEnabled", payload)
 
-    def OpenInputPropertiesDialog(self, name):
+    def open_input_properties_dialog(self, name):
         """
         Opens the properties dialog of an input.
 
@@ -1940,11 +1780,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('OpenInputPropertiesDialog', payload)
-        return response
+        payload = {"inputName": name}
+        self.send("OpenInputPropertiesDialog", payload)
 
-    def OpenInputFiltersDialog(self, name):
+    def open_input_filters_dialog(self, name):
         """
         Opens the filters dialog of an input.
 
@@ -1953,11 +1792,10 @@ class ReqClient(object):
 
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('OpenInputFiltersDialog', payload)
-        return response
+        payload = {"inputName": name}
+        self.send("OpenInputFiltersDialog", payload)
 
-    def OpenInputInteractDialog(self, name):
+    def open_input_interact_dialog(self, name):
         """
         Opens the filters dialog of an input.
 
@@ -1966,15 +1804,13 @@ class ReqClient(object):
 
 
         """
-        payload = {'inputName': name}
-        response = self.base_client.req('OpenInputInteractDialog', payload)
-        return response
+        payload = {"inputName": name}
+        self.send("OpenInputInteractDialog", payload)
 
-    def GetMonitorList(self, name):
+    def get_monitor_list(self):
         """
         Gets a list of connected monitors and information about them.
-        
+
 
         """
-        response = self.base_client.req('GetMonitorList')
-        return response
+        return self.send("GetMonitorList")

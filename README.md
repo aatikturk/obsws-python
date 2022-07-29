@@ -1,9 +1,13 @@
-# obs_sdk
-### A Python SDK for OBS Studio WebSocket v5.0
+# A Python SDK for OBS Studio WebSocket v5.0
 
-This is a wrapper around OBS Websocket. 
-Not all endpoints in the official documentation are implemented. But all endpoints in the Requests section is implemented. You can find the relevant document using below link.
-[obs-websocket github page](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#Requests)
+This is a wrapper around OBS Websocket.
+Not all endpoints in the official documentation are implemented.
+
+## Requirements
+
+-   [OBS Studio](https://obsproject.com/)
+-   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
+-   Python 3.11 or greater
 
 ### How to install using pip
 
@@ -11,27 +15,39 @@ Not all endpoints in the official documentation are implemented. But all endpoin
 pip install obsstudio-sdk
 ```
 
-
 ### How to Use
 
-* Import and start using
-  Required parameters are as follows:
-    host:       obs websocket server
-    port:       port to access server
-    password:   obs websocket server password
+Load connection info from toml config. A valid `config.toml` might look like this:
 
-```
->>>from obsstudio_sdk.reqs import ReqClient
->>>
->>>client = ReqClient('192.168.1.1', 4444, 'somepassword')
+```toml
+[connection]
+host = "localhost"
+port = 4455
+password = "mystrongpass"
 ```
 
-Now you can make calls to OBS 
+It should be placed next to your `__main__.py` file.
 
-Example:  Toggle the mute state of your Mic input
+#### Otherwise:
 
+Import and start using, keyword arguments are as follows:
+
+-   `host`: obs websocket server
+-   `port`: port to access server
+-   `password`: obs websocket server password
+
+Example `__main__.py`
+
+```python
+import obsstudio_sdk as obs
+
+# pass conn info if not in config.toml
+cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
+
+# Toggle the mute state of your Mic input
+cl.toggle_input_mute('Mic/Aux')
 ```
->>>cl.ToggleInputMute('Mic/Aux')
->>>
 
-```
+### Official Documentation
+
+-   [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
