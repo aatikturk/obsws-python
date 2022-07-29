@@ -20,6 +20,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+setup.py
 MANIFEST
 
 # Unit test / coverage reports

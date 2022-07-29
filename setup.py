@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = '0.6'
+VERSION = '1.0.1'
 PACKAGE_NAME = 'obsstudio_sdk'
 AUTHOR = 'Adem Atikturk'
 AUTHOR_EMAIL = 'aatikturk@gmail.com'
@@ -22,7 +22,7 @@ INSTALL_REQUIRES = [
 ]
 
 # Python version requirement
-PYTHON_REQUIRES = '>=3'
+PYTHON_REQUIRES = '>=3.11'
 
 setup(name=PACKAGE_NAME,
       version=VERSION,
