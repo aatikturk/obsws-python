@@ -19,7 +19,7 @@ Subs = IntEnum(
 )
 
 
-class EventClient(object):
+class EventClient:
     DELAY = 0.001
 
     def __init__(self, **kwargs):

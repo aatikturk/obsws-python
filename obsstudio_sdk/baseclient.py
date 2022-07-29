@@ -8,7 +8,7 @@ import tomllib
 import websocket
 
 
-class ObsClient(object):
+class ObsClient:
     DELAY = 0.001
 
     def __init__(self, **kwargs):

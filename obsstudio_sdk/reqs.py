@@ -9,7 +9,7 @@ https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.
 """
 
 
-class ReqClient(object):
+class ReqClient:
     def __init__(self, **kwargs):
         self.base_client = ObsClient(**kwargs)
         self.base_client.authenticate()

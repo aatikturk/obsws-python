@@ -12,7 +12,7 @@ def to_snake_case(s):
 
 def as_dataclass(identifier, data):
     def attrs():
-        return list(data.keys())
+        return list(to_snake_case(k) for k in data.keys())
 
     return dataclass(
         type(
