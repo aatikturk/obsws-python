@@ -93,9 +93,12 @@ cl.callback.register(input_mute_state_changed)
 
 # returns a list of currently registered events
 print(cl.callback.get())
+
+# You may also deregister a callback
+cl.callback.deregister(input_mute_state_changed)
 ```
 
-cl.callback accepts both a single or list of functions.
+`register(fns)` and `deregister(fns)` accept both single functions and lists of functions.
 
 For a full list of events refer to [Events](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events)
 
