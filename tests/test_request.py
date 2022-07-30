@@ -11,34 +11,13 @@ class TestRequests:
         assert hasattr(resp, "obs_version")
         assert hasattr(resp, "obs_web_socket_version")
 
-    @pytest.mark.parametrize(
-        "scene",
-        [
-            ("START"),
-            ("BRB"),
-            ("END"),
-        ],
-    )
-    def test_current_program_scene(self, scene):
-        req_cl.set_current_program_scene(scene)
-        resp = req_cl.get_current_program_scene()
-        assert resp.current_program_scene_name == scene
-
-    @pytest.mark.parametrize(
-        "state",
-        [
-            (False),
-            (True),
-        ],
-    )
-    def test_studio_mode_enabled(self, state):
-        req_cl.set_studio_mode_enabled(state)
-        resp = req_cl.get_studio_mode_enabled()
-        assert resp.studio_mode_enabled == state
-
     def test_get_hot_key_list(self):
         resp = req_cl.get_hot_key_list()
-        hotkey_list = [
+        obsbasic_hotkey_list = [
+            "OBSBasic.SelectScene",
+            "OBSBasic.SelectScene",
+            "OBSBasic.SelectScene",
+            "OBSBasic.SelectScene",
             "OBSBasic.StartStreaming",
             "OBSBasic.StopStreaming",
             "OBSBasic.ForceStopStreaming",
@@ -59,29 +38,8 @@ class TestRequests:
             "OBSBasic.ResetStats",
             "OBSBasic.Screenshot",
             "OBSBasic.SelectedSourceScreenshot",
-            "libobs.mute",
-            "libobs.unmute",
-            "libobs.push-to-mute",
-            "libobs.push-to-talk",
-            "libobs.mute",
-            "libobs.unmute",
-            "libobs.push-to-mute",
-            "libobs.push-to-talk",
-            "OBSBasic.SelectScene",
-            "OBSBasic.SelectScene",
-            "OBSBasic.SelectScene",
-            "OBSBasic.SelectScene",
-            "libobs.show_scene_item.Colour Source 2",
-            "libobs.hide_scene_item.Colour Source 2",
-            "libobs.show_scene_item.Colour Source 3",
-            "libobs.hide_scene_item.Colour Source 3",
-            "libobs.show_scene_item.Colour Source",
-            "libobs.hide_scene_item.Colour Source",
-            "OBSBasic.QuickTransition.1",
-            "OBSBasic.QuickTransition.2",
-            "OBSBasic.QuickTransition.3",
         ]
-        assert all(x in resp.hotkeys for x in hotkey_list)
+        assert all(x in resp.hotkeys for x in obsbasic_hotkey_list)
 
     @pytest.mark.parametrize(
         "name,data",
@@ -103,9 +61,53 @@ class TestRequests:
         resp = req_cl.get_profile_list()
         assert "test" not in resp.profiles
 
+    def test_stream_service_settings(self):
+        settings = {
+            "server": "rtmp://addressofrtmpserver",
+            "key": "live_myvery_secretkey",
+        }
+        req_cl.set_stream_service_settings(
+            "rtmp_common",
+            settings,
+        )
+        resp = req_cl.get_stream_service_settings()
+        assert resp.stream_service_type == "rtmp_common"
+        assert resp.stream_service_settings == {
+            "server": "rtmp://addressofrtmpserver",
+            "key": "live_myvery_secretkey",
+        }
+
+    @pytest.mark.parametrize(
+        "scene",
+        [
+            ("START_TEST"),
+            ("BRB_TEST"),
+            ("END_TEST"),
+        ],
+    )
+    def test_current_program_scene(self, scene):
+        req_cl.set_current_program_scene(scene)
+        resp = req_cl.get_current_program_scene()
+        assert resp.current_program_scene_name == scene
+
+    def test_input_list(self):
+        req_cl.create_input(
+            "START_TEST", "test", "color_source_v3", {"color": 4294945535}, True
+        )
+        resp = req_cl.get_input_list()
+        assert {
+            "inputKind": "color_source_v3",
+            "inputName": "test",
+            "unversionedInputKind": "color_source",
+        } in resp.inputs
+        resp = req_cl.get_input_settings("test")
+        assert resp.input_kind == "color_source_v3"
+        assert resp.input_settings == {"color": 4294945535}
+        req_cl.remove_input("test")
+
     def test_source_filter(self):
-        req_cl.create_source_filter("START", "test", "color_key_filter_v2")
-        resp = req_cl.get_source_filter_list("START")
+        req_cl.create_source_filter("START_TEST", "test", "color_key_filter_v2")
+        resp = req_cl.get_source_filter_list("START_TEST")
         assert resp.filters == [
             {
                 "filterEnabled": True,
@@ -115,4 +117,16 @@ class TestRequests:
                 "filterSettings": {},
             }
         ]
-        req_cl.remove_source_filter("START", "test")
+        req_cl.remove_source_filter("START_TEST", "test")
+
+    @pytest.mark.parametrize(
+        "state",
+        [
+            (False),
+            (True),
+        ],
+    )
+    def test_studio_mode_enabled(self, state):
+        req_cl.set_studio_mode_enabled(state)
+        resp = req_cl.get_studio_mode_enabled()
+        assert resp.studio_mode_enabled == state

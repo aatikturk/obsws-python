@@ -17,7 +17,7 @@ class Callback:
         return [to_camel_case(fn.__name__[2:]) for fn in self._callbacks]
 
     def trigger(self, event, data):
-        """trigger callback on update"""
+        """trigger callback on event"""
 
         for fn in self._callbacks:
             if fn.__name__ == f"on_{to_snake_case(event)}":
@@ -36,7 +36,7 @@ class Callback:
                 self._callbacks.append(fns)
 
     def deregister(self, fns: Union[Iterable, Callable]):
-        """deregisters a callback from _callbacks"""
+        """deregisters callback functions"""
 
         try:
             iterator = iter(fns)

@@ -592,7 +592,7 @@ class ReqClient:
         }
         self.send("SetSceneSceneTransitionOverride", payload)
 
-    def get_input_list(self, kind):
+    def get_input_list(self, kind=None):
         """
         Gets a list of all inputs in OBS.
 
