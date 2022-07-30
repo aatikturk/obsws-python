@@ -1,5 +1,3 @@
-import time
-
 import obsstudio_sdk as obs
 
 req_cl = obs.ReqClient()
