@@ -21,7 +21,7 @@ LONG_DESC_TYPE = "text/markdown"
 INSTALL_REQUIRES = ["websocket-client"]
 
 # Development dependencies
-EXTRAS_REQUIRES = {
+EXTRAS_REQUIRE = {
     "dev": [
         "pytest",
         "pytest-randomly",
@@ -44,7 +44,7 @@ setup(
     author_email=AUTHOR_EMAIL,
     url=URL,
     install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS_REQUIRES,
+    extras_require=EXTRAS_REQUIRE,
     python_requires=PYTHON_REQUIRES,
     packages=find_packages(),
 )
