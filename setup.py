@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 PACKAGE_NAME = "obsstudio_sdk"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
