@@ -44,7 +44,7 @@ Import and start using, keyword arguments are as follows:
 Example `__main__.py`:
 
 ```python
-import obsstudio_sdk as obs
+from obsstudio_sdk import reqs as obs
 
 # pass conn info if not in config.toml
 cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
@@ -60,7 +60,9 @@ Method names for requests match the API calls but snake cased.
 example:
 
 ```python
-cl = ReqClient()
+from obsstudio_sdk import reqs as obs
+cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
+
 
 # GetVersion
 resp = cl.get_version()
