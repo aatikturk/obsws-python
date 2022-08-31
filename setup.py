@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 PACKAGE_NAME = "obsstudio_sdk"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
@@ -18,7 +18,7 @@ LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 
 # Dependencies for the package
-INSTALL_REQUIRES = ["websocket-client"]
+INSTALL_REQUIRES = ["websocket-client", "tomli >= 1.1.0;python_version < '3.11'"]
 
 # Development dependencies
 EXTRAS_REQUIRE = {
@@ -31,7 +31,7 @@ EXTRAS_REQUIRE = {
 }
 
 # Python version requirement
-PYTHON_REQUIRES = ">=3.11"
+PYTHON_REQUIRES = ">=3.10"
 
 setup(
     name=PACKAGE_NAME,
