@@ -12,7 +12,7 @@ Not all endpoints in the official documentation are implemented.
 
 -   [OBS Studio](https://obsproject.com/)
 -   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
--   Python 3.11 or greater
+-   Python 3.10 or greater
 
 ### How to install using pip
 
@@ -44,7 +44,7 @@ Import and start using, keyword arguments are as follows:
 Example `__main__.py`:
 
 ```python
-from obsstudio_sdk import reqs as obs
+import obsstudio_sdk as obs
 
 # pass conn info if not in config.toml
 cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
@@ -60,15 +60,14 @@ Method names for requests match the API calls but snake cased.
 example:
 
 ```python
-from obsstudio_sdk import reqs as obs
-cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
-
+# load conn info from config.toml
+cl = obs.ReqClient()
 
 # GetVersion
 resp = cl.get_version()
 
 # SetCurrentProgramScene
-cl.set_current_program_scene()
+cl.set_current_program_scene("BRB")
 ```
 
 For a full list of requests refer to [Requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests)
@@ -80,7 +79,8 @@ When registering a function callback use the name of the expected API event in s
 example:
 
 ```python
-cl = EventClient()
+# load conn info from config.toml
+cl = obs.EventClient()
 
 def scene_created(data):
     ...

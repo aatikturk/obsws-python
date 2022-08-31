@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 from random import randint
 
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
 import websocket
 
 
