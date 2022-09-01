@@ -12,6 +12,7 @@ Not all endpoints in the official documentation are implemented.
 
 -   [OBS Studio](https://obsproject.com/)
 -   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
+    -   With the release of OBS Studio version 28,  Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
 -   Python 3.10 or greater
 
 ### How to install using pip
