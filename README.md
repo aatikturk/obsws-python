@@ -18,7 +18,7 @@ Not all endpoints in the official documentation are implemented.
 ### How to install using pip
 
 ```
-pip install obsstudio-sdk
+pip install obsws-python
 ```
 
 ### How to Use
@@ -45,7 +45,7 @@ Import and start using, keyword arguments are as follows:
 Example `__main__.py`:
 
 ```python
-import obsstudio_sdk as obs
+import obsws_python as obs
 
 # pass conn info if not in config.toml
 cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
