@@ -1,5 +1,5 @@
 import pytest
-from obsstudio_sdk.callback import Callback
+from obsws_python.callback import Callback
 
 
 class TestCallbacks:

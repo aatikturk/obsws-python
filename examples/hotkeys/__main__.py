@@ -1,7 +1,7 @@
 import inspect
 
 import keyboard
-import obsstudio_sdk as obs
+import obsws_python as obs
 
 
 class Observer:

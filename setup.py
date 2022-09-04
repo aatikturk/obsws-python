@@ -5,11 +5,11 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.0.3"
-PACKAGE_NAME = "obsstudio_sdk"
+VERSION = "1.0.4"
+PACKAGE_NAME = "obsws-python"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
-URL = "https://github.com/aatikturk/obsstudio_sdk"
+URL = "https://github.com/aatikturk/obsws-python"
 LICENSE = "GNU General Public License v3.0"
 DESCRIPTION = "A Python SDK for OBS Studio WebSocket v5.0"
 

@@ -1,4 +1,4 @@
-import obsstudio_sdk as obs
+import obsws_python as obs
 
 req_cl = obs.ReqClient()
 
