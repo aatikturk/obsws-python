@@ -1659,7 +1659,7 @@ class ReqClient:
 
 
         """
-        self.send("StopRecord")
+        return self.send("StopRecord")
 
     def toggle_record_pause(self):
         """
