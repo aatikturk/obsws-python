@@ -83,7 +83,7 @@ class ReqClient:
 
 
         """
-        self.send(requestType, requestData)
+        return self.send(requestType, requestData)
 
     def get_hot_key_list(self):
         """
@@ -384,6 +384,12 @@ class ReqClient:
         }
         self.send("SetStreamServiceSettings", payload)
 
+    def get_record_directory(self):
+        """
+        Gets the current directory that the record output is set to.
+        """
+        return self.send("GetRecordDirectory")
+
     def get_source_active(self, name):
         """
         Gets the active and show state of a source
@@ -650,7 +656,7 @@ class ReqClient:
             "inputSettings": inputSettings,
             "sceneItemEnabled": sceneItemEnabled,
         }
-        self.send("CreateInput", payload)
+        return self.send("CreateInput", payload)
 
     def remove_input(self, name):
         """
@@ -756,7 +762,7 @@ class ReqClient:
 
         """
         payload = {"inputName": name}
-        self.send("ToggleInputMute", payload)
+        return self.send("ToggleInputMute", payload)
 
     def get_input_volume(self, name):
         """
@@ -1212,9 +1218,11 @@ class ReqClient:
         payload = {"sceneName": name}
         return self.send("GetSceneItemList", payload)
 
-    def get_group_item_list(self, name):
+    def get_group_scene_item_list(self, name):
         """
-        Gets a list of all scene items in a scene.
+        Basically GetSceneItemList, but for groups.
+
+        Using groups at all in OBS is discouraged, as they are very broken under the hood.
 
         :param name: Name of the group to get the items of
         :type name: str
@@ -1222,7 +1230,7 @@ class ReqClient:
 
         """
         payload = {"sceneName": name}
-        return self.send("GetGroupItemList", payload)
+        return self.send("GetGroupSceneItemList", payload)
 
     def get_scene_item_id(self, scene_name, source_name, offset=None):
         """
@@ -1263,7 +1271,7 @@ class ReqClient:
             "sourceName": source_name,
             "sceneItemEnabled": enabled,
         }
-        self.send("CreateSceneItem", payload)
+        return self.send("CreateSceneItem", payload)
 
     def remove_scene_item(self, scene_name, item_id):
         """
@@ -1302,7 +1310,7 @@ class ReqClient:
             "sceneItemId": item_id,
             "destinationSceneName": dest_scene_name,
         }
-        self.send("DuplicateSceneItem", payload)
+        return self.send("DuplicateSceneItem", payload)
 
     def get_scene_item_transform(self, scene_name, item_id):
         """
@@ -1520,7 +1528,7 @@ class ReqClient:
 
 
         """
-        self.send("ToggleVirtualCam")
+        return self.send("ToggleVirtualCam")
 
     def start_virtual_cam(self):
         """
@@ -1552,7 +1560,7 @@ class ReqClient:
 
 
         """
-        self.send("ToggleReplayBuffer")
+        return self.send("ToggleReplayBuffer")
 
     def start_replay_buffer(self):
         """
@@ -1586,6 +1594,77 @@ class ReqClient:
         """
         return self.send("GetLastReplayBufferReplay")
 
+    def get_output_list(self):
+        """
+        Gets the list of available outputs.
+        """
+        return self.send("GetOutputList")
+
+    def get_output_status(self, name):
+        """
+        Gets the status of an output.
+
+        :param name: Output name
+        :type name: str
+        """
+        payload = {"outputName": name}
+        return self.send("GetOutputStatus", payload)
+
+    def toggle_output(self, name):
+        """
+        Toggles the status of an output.
+
+        :param name: Output name
+        :type name: str
+        """
+        payload = {"outputName": name}
+        return self.send("ToggleOutput", payload)
+
+    def start_output(self, name):
+        """
+        Starts an output.
+
+        :param name: Output name
+        :type name: str
+        """
+        payload = {"outputName": name}
+        self.send("StartOutput", payload)
+
+    def stop_output(self, name):
+        """
+        Stops an output.
+
+        :param name: Output name
+        :type name: str
+        """
+        payload = {"outputName": name}
+        self.send("StopOutput", payload)
+
+    def get_output_settings(self, name):
+        """
+        Gets the settings of an output.
+
+        :param name: Output name
+        :type name: str
+        """
+        payload = {"outputName": name}
+        return self.send("GetOutputSettings", payload)
+
+    def set_output_settings(self, name, settings):
+        """
+        Sets the settings of an output.
+
+        :param name: Output name
+        :type name: str
+        :param settings: Output settings
+        :type settings: dict
+        """
+        payload = {
+            "outputName": name,
+            "outputSettings": settings,
+        }
+        self.send("SetOutputSettings", payload)
+
     def get_stream_status(self):
         """
         Gets the status of the stream output.
@@ -1600,7 +1679,7 @@ class ReqClient:
 
 
         """
-        self.send("ToggleStream")
+        return self.send("ToggleStream")
 
     def start_stream(self):
         """

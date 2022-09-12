@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.0.5"
+VERSION = "1.1.0"
 PACKAGE_NAME = "obsws-python"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
@@ -18,7 +18,7 @@ LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 
 # Dependencies for the package
-INSTALL_REQUIRES = ["websocket-client", "tomli >= 1.1.0;python_version < '3.11'"]
+INSTALL_REQUIRES = ["websocket-client", "tomli >= 2.0.1;python_version < '3.11'"]
 
 # Development dependencies
 EXTRAS_REQUIRE = {
