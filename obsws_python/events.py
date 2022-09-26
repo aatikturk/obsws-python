@@ -61,7 +61,7 @@ class EventClient:
                 self.data["d"].get("eventType"),
                 self.data["d"].get("eventData"),
             )
-            self.callback.trigger(event, data)
+            self.callback.trigger(event, data if data else {})
             time.sleep(self.DELAY)
 
     def unsubscribe(self):
@@ -69,3 +69,4 @@ class EventClient:
         stop listening for events
         """
         self.running = False
+        self.base_client.ws.close()

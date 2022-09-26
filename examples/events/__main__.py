@@ -26,7 +26,7 @@ class Observer:
         """An input's mute state has changed."""
         print(f"{data.input_name} mute toggled")
 
-    def on_exit_started(self, data):
+    def on_exit_started(self, _):
         """OBS has begun the shutdown process."""
         print(f"OBS closing!")
         self._cl.unsubscribe()
