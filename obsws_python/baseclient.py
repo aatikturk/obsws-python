@@ -35,10 +35,9 @@ class ObsClient:
 
     def _conn_from_toml(self):
         filepath = Path.cwd() / "config.toml"
-        self._conn = dict()
         with open(filepath, "rb") as f:
-            self._conn = tomllib.load(f)
-        return self._conn["connection"]
+            conn = tomllib.load(f)
+        return conn["connection"]
 
     def authenticate(self):
         secret = base64.b64encode(

@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 PACKAGE_NAME = "obsws-python"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
