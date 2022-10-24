@@ -14,3 +14,5 @@ host = "localhost"
 port = 4455
 password = "mystrongpass"
 ```
+
+Closing OBS ends the script.

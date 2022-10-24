@@ -1,10 +1,12 @@
+import time
+
 import obsws_python as obs
 
 
 class Observer:
-    def __init__(self, cl):
-        self._cl = cl
-        self._cl.callback.register(
+    def __init__(self):
+        self._client = obs.EventClient()
+        self._client.callback.register(
             [
                 self.on_current_program_scene_changed,
                 self.on_scene_created,
@@ -12,7 +14,8 @@ class Observer:
                 self.on_exit_started,
             ]
         )
-        print(f"Registered events: {self._cl.callback.get()}")
+        print(f"Registered events: {self._client.callback.get()}")
+        self.running = True
 
     def on_current_program_scene_changed(self, data):
         """The current program scene has changed."""
@@ -29,13 +32,12 @@ class Observer:
     def on_exit_started(self, _):
         """OBS has begun the shutdown process."""
         print(f"OBS closing!")
-        self._cl.unsubscribe()
+        self._client.unsubscribe()
+        self.running = False
 
 
 if __name__ == "__main__":
-    cl = obs.EventClient()
-    observer = Observer(cl)
+    observer = Observer()
 
-    while cmd := input("<Enter> to exit\n"):
-        if not cmd:
-            break
+    while observer.running:
+        time.sleep(0.1)

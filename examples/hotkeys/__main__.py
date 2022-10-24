@@ -5,10 +5,10 @@ import obsws_python as obs
 
 
 class Observer:
-    def __init__(self, cl):
-        self._cl = cl
-        self._cl.callback.register(self.on_current_program_scene_changed)
-        print(f"Registered events: {self._cl.callback.get()}")
+    def __init__(self):
+        self._client = obs.EventClient()
+        self._client.callback.register(self.on_current_program_scene_changed)
+        print(f"Registered events: {self._client.callback.get()}")
 
     @property
     def event_identifier(self):
@@ -20,20 +20,19 @@ class Observer:
 
 
 def version():
-    resp = req_cl.get_version()
+    resp = req_client.get_version()
     print(
         f"Running OBS version:{resp.obs_version} with websocket version:{resp.obs_web_socket_version}"
     )
 
 
 def set_scene(scene, *args):
-    req_cl.set_current_program_scene(scene)
+    req_client.set_current_program_scene(scene)
 
 
 if __name__ == "__main__":
-    req_cl = obs.ReqClient()
-    ev_cl = obs.EventClient()
-    observer = Observer(ev_cl)
+    req_client = obs.ReqClient()
+    observer = Observer()
 
     keyboard.add_hotkey("0", version)
     keyboard.add_hotkey("1", set_scene, args=("START",))
