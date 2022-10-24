@@ -31,7 +31,7 @@ class Callback:
             for fn in iterator:
                 if fn not in self._callbacks:
                     self._callbacks.append(fn)
-        except TypeError as e:
+        except TypeError:
             if fns not in self._callbacks:
                 self._callbacks.append(fns)
 
@@ -43,7 +43,7 @@ class Callback:
             for fn in iterator:
                 if fn in self._callbacks:
                     self._callbacks.remove(fn)
-        except TypeError as e:
+        except TypeError:
             if fns in self._callbacks:
                 self._callbacks.remove(fns)
 

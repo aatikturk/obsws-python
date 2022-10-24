@@ -1,3 +1,5 @@
+import logging
+
 from .baseclient import ObsClient
 from .error import OBSSDKError
 from .util import as_dataclass
@@ -10,9 +12,18 @@ https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.
 
 
 class ReqClient:
+    logger = logging.getLogger("reqs.reqclient")
+
     def __init__(self, **kwargs):
         self.base_client = ObsClient(**kwargs)
-        self.base_client.authenticate()
+        if self.base_client.authenticate():
+            self.logger.info("Successfully identified client with the server")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.base_client.ws.close()
 
     def send(self, param, data=None):
         response = self.base_client.req(param, data)
@@ -486,7 +497,7 @@ class ReqClient:
 
 
         """
-        return self.send("GetSceneList")
+        return self.send("GetGroupList")
 
     def get_current_program_scene(self):
         """

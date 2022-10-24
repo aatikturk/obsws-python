@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from enum import IntEnum
 from threading import Thread
@@ -20,6 +21,7 @@ Subs = IntEnum(
 
 
 class EventClient:
+    logger = logging.getLogger("events.eventclient")
     DELAY = 0.001
 
     def __init__(self, **kwargs):
@@ -40,7 +42,8 @@ class EventClient:
         }
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
-        self.base_client.authenticate()
+        if self.base_client.authenticate():
+            self.logger.info("Successfully identified client with the server")
         self.callback = Callback()
         self.subscribe()
 
@@ -56,12 +59,13 @@ class EventClient:
         """
         self.running = True
         while self.running:
-            self.data = json.loads(self.base_client.ws.recv())
-            event, data = (
-                self.data["d"].get("eventType"),
-                self.data["d"].get("eventData"),
+            event = json.loads(self.base_client.ws.recv())
+            self.logger.debug(f"Event received {event}")
+            type_, data = (
+                event["d"].get("eventType"),
+                event["d"].get("eventData"),
             )
-            self.callback.trigger(event, data if data else {})
+            self.callback.trigger(type_, data if data else {})
             time.sleep(self.DELAY)
 
     def unsubscribe(self):
