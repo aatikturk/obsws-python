@@ -80,7 +80,7 @@ class ObsClient:
 
     def req(self, req_type, req_data=None):
         id = randint(1, 1000)
-        self.logger.debug(f"Sending request with response id {id}")
+        self.logger.debug(f"Sending request with id {id}")
         payload = {
             "op": 6,
             "d": {"requestType": req_type, "requestId": id},
