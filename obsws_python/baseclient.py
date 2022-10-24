@@ -89,5 +89,5 @@ class ObsClient:
             payload["d"]["requestData"] = req_data
         self.ws.send(json.dumps(payload))
         response = json.loads(self.ws.recv())
-        self.logger.debug(f"Reponse received {response}")
+        self.logger.debug(f"Response received {response}")
         return response["d"]
