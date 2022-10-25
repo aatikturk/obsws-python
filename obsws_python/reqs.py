@@ -17,13 +17,16 @@ class ReqClient:
     def __init__(self, **kwargs):
         self.base_client = ObsClient(**kwargs)
         if self.base_client.authenticate():
-            self.logger.info("Successfully identified client with the server")
+            self.logger.info(f"Successfully identified {self} with the server")
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.base_client.ws.close()
+
+    def __repr__(self):
+        return type(self).__name__
 
     def send(self, param, data=None):
         response = self.base_client.req(param, data)

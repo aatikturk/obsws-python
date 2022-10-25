@@ -43,9 +43,12 @@ class EventClient:
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
         if self.base_client.authenticate():
-            self.logger.info("Successfully identified client with the server")
+            self.logger.info(f"Successfully identified {self} with the server")
         self.callback = Callback()
         self.subscribe()
+
+    def __repr__(self):
+        return type(self).__name__
 
     def subscribe(self):
         worker = Thread(target=self.trigger, daemon=True)
