@@ -12,7 +12,8 @@ LEVELTYPE = IntEnum(
 
 def on_input_mute_state_changed(data):
     """The current program scene has changed."""
-    print(f"{data.input_name} mute toggled")
+    if data.input_name == DEVICE:
+        print(f"{DEVICE} mute toggled")
 
 
 def on_input_volume_meters(data):
@@ -21,7 +22,7 @@ def on_input_volume_meters(data):
 
     for device in data.inputs:
         name = device["inputName"]
-        if name == INPUT_DEVICE and device["inputLevelsMul"]:
+        if name == DEVICE and device["inputLevelsMul"]:
             left, right = device["inputLevelsMul"]
             print(
                 f"{name} [L: {fget(left[LEVELTYPE.POSTFADER])}, R: {fget(right[LEVELTYPE.POSTFADER])}]",
@@ -38,6 +39,6 @@ def main():
 
 
 if __name__ == "__main__":
-    INPUT_DEVICE = "Desktop Audio"
+    DEVICE = "Desktop Audio"
 
     main()
