@@ -1,11 +1,11 @@
 import json
 import logging
 import time
-from enum import IntEnum
 from threading import Thread
 
 from .baseclient import ObsClient
 from .callback import Callback
+from .enum import Subs
 
 """
 A class to interact with obs-websocket events
@@ -13,33 +13,13 @@ defined in official github repo
 https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events
 """
 
-Subs = IntEnum(
-    "Subs",
-    "general config scenes inputs transitions filters outputs sceneitems mediainputs vendors ui",
-    start=0,
-)
-
 
 class EventClient:
     logger = logging.getLogger("events.eventclient")
     DELAY = 0.001
 
     def __init__(self, **kwargs):
-        defaultkwargs = {
-            "subs": (
-                (1 << Subs.general)
-                | (1 << Subs.config)
-                | (1 << Subs.scenes)
-                | (1 << Subs.inputs)
-                | (1 << Subs.transitions)
-                | (1 << Subs.filters)
-                | (1 << Subs.outputs)
-                | (1 << Subs.sceneitems)
-                | (1 << Subs.mediainputs)
-                | (1 << Subs.vendors)
-                | (1 << Subs.ui)
-            )
-        }
+        defaultkwargs = {"subs": Subs.LOW_VOLUME}
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
         if self.base_client.authenticate():
