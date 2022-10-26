@@ -1,6 +1,6 @@
 ## About
 
-Prints PREFADER level values for audio device `Desktop Audio`. If mute toggled prints mute state changed notification.
+Prints POSTFADER level values for audio device `Desktop Audio`. If mute toggled prints mute state changed notification.
 
 ## Use
 
