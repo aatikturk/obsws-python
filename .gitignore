@@ -43,6 +43,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.hatch
 
 # Test/config
 quick.py

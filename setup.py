@@ -5,7 +5,16 @@ from setuptools import find_packages, setup
 HERE = pathlib.Path(__file__).parent
 
 
-VERSION = "1.2.0"
+def get_version():
+    versionpath = pathlib.Path(HERE) / "obsws_python" / "version.py"
+    with open(versionpath) as f:
+        for line in f:
+            if line.startswith("version"):
+                versionstring = line.split('"')[1]
+    return versionstring
+
+
+VERSION = get_version()
 PACKAGE_NAME = "obsws-python"
 AUTHOR = "Adem Atikturk"
 AUTHOR_EMAIL = "aatikturk@gmail.com"
