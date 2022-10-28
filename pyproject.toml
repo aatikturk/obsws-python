@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "obsws-python"
+dynamic = ["version"]
+description = "A Python SDK for OBS Studio WebSocket v5.0"
+readme = "README.md"
+license = "GPL-3.0-only"
+requires-python = ">=3.10"
+authors = [
+    { name = "Adem Atikturk", email = "aatikturk@gmail.com" },
+]
+dependencies = [
+    "tomli >= 2.0.1;python_version < '3.11'",
+    "websocket-client",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "pytest",
+    "pytest-randomly",
+]
+
+[project.urls]
+Homepage = "https://github.com/aatikturk/obsws-python"
+
+[tool.hatch.version]
+path = "obsws_python/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/obsws_python",
+]
+
+[tool.hatch.envs.e.scripts]
+events = "py {root}\\examples\\events\\."
+hotkeys = "py {root}\\examples\\hotkeys\\."
+levels = "py {root}\\examples\\levels\\."
+scene_rotate = "py {root}\\examples\\scene_rotate\\."
