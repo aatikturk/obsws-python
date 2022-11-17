@@ -41,7 +41,7 @@ class ObsClient:
         filepath = Path.cwd() / "config.toml"
         if filepath.exists():
             with open(filepath, "rb") as f:
-                conn |= tomllib.load(f)
+                conn = tomllib.load(f)
         return conn["connection"] if "connection" in conn else conn
 
     def authenticate(self):
