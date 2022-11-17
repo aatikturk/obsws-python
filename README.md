@@ -12,7 +12,7 @@ Not all endpoints in the official documentation are implemented.
 
 -   [OBS Studio](https://obsproject.com/)
 -   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
-    -   With the release of OBS Studio version 28,  Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
+    -   With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
 -   Python 3.10 or greater
 
 ### How to install using pip
@@ -23,7 +23,19 @@ pip install obsws-python
 
 ### How to Use
 
-Load connection info from toml config. A valid `config.toml` might look like this:
+By default the clients connect with parameters:
+
+-   `host`: "localhost"
+-   `port`: 4455
+-   `password`: None
+
+You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
+
+Order of precedence: keyword arguments then config file then default values.
+
+#### `config file`
+
+A valid `config.toml` might look like this:
 
 ```toml
 [connection]
@@ -35,12 +47,6 @@ password = "mystrongpass"
 It should be placed next to your `__main__.py` file.
 
 #### Otherwise:
-
-Import and start using, keyword arguments are as follows:
-
--   `host`: obs websocket server
--   `port`: port to access server
--   `password`: obs websocket server password
 
 Example `__main__.py`:
 
@@ -75,7 +81,7 @@ For a full list of requests refer to [Requests](https://github.com/obsproject/ob
 
 ### Events
 
-When registering a function callback use the name of the expected API event in snake case form.
+When registering a callback function use the name of the expected API event in snake case form, prepended with "on\_".
 
 example:
 
@@ -83,23 +89,23 @@ example:
 # load conn info from config.toml
 cl = obs.EventClient()
 
-def scene_created(data):
+def on_scene_created(data):
     ...
 
 # SceneCreated
-cl.callback.register(scene_created)
+cl.callback.register(on_scene_created)
 
-def input_mute_state_changed(data):
+def on_input_mute_state_changed(data):
     ...
 
 # InputMuteStateChanged
-cl.callback.register(input_mute_state_changed)
+cl.callback.register(on_input_mute_state_changed)
 
 # returns a list of currently registered events
 print(cl.callback.get())
 
 # You may also deregister a callback
-cl.callback.deregister(input_mute_state_changed)
+cl.callback.deregister(on_input_mute_state_changed)
 ```
 
 `register(fns)` and `deregister(fns)` accept both single functions and lists of functions.
@@ -116,7 +122,7 @@ example:
 resp = cl.get_version()
 print(resp.attrs())
 
-def scene_created(data):
+def on_scene_created(data):
     print(data.attrs())
 ```
 
@@ -125,6 +131,21 @@ def scene_created(data):
 If a request fails an `OBSSDKError` will be raised with a status code.
 
 For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
+
+### Logging
+
+If you want to see the raw messages simply set log level to DEBUG
+
+example:
+
+```python
+import obsws_python as obs
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
+...
+```
 
 ### Tests
 
