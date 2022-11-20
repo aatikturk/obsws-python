@@ -75,7 +75,7 @@ class ReqClient:
         """
         self.send("BroadcastCustomEvent", eventData)
 
-    def call_vendor_request(self, vendorName, requestType, requestData=None):
+    def call_vendor_request(self, vendor_name, request_type, request_data=None):
         """
         Call a request registered to a vendor.
 
@@ -97,7 +97,10 @@ class ReqClient:
 
 
         """
-        return self.send(requestType, requestData)
+        payload = {"vendorName": vendor_name, "requestType": request_type}
+        if request_data:
+            payload["requestData"] = request_data
+        return self.send("CallVendorRequest", payload)
 
     def get_hot_key_list(self):
         """
@@ -109,6 +112,8 @@ class ReqClient:
 
         """
         return self.send("GetHotkeyList")
+
+    get_hotkey_list = get_hot_key_list
 
     def trigger_hot_key_by_name(self, hotkeyName):
         """
@@ -122,6 +127,8 @@ class ReqClient:
         """
         payload = {"hotkeyName": hotkeyName}
         self.send("TriggerHotkeyByName", payload)
+
+    trigger_hotkey_by_name = trigger_hot_key_by_name
 
     def trigger_hot_key_by_key_sequence(
         self, keyId, pressShift, pressCtrl, pressAlt, pressCmd
@@ -154,6 +161,8 @@ class ReqClient:
             },
         }
         self.send("TriggerHotkeyByKeySequence", payload)
+
+    trigger_hotkey_by_key_sequence = trigger_hot_key_by_key_sequence
 
     def sleep(self, sleepMillis=None, sleepFrames=None):
         """

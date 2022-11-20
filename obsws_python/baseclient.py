@@ -19,28 +19,30 @@ class ObsClient:
     logger = logging.getLogger("baseclient.obsclient")
 
     def __init__(self, **kwargs):
-        defaultkwargs = {
-            **{key: None for key in ["host", "port", "password"]},
-            "subs": 0,
-        }
+        defaultkwargs = {"host": "localhost", "port": 4455, "password": None, "subs": 0}
+        if not any(key in kwargs for key in ("host", "port", "password")):
+            kwargs |= self._conn_from_toml()
         kwargs = defaultkwargs | kwargs
         for attr, val in kwargs.items():
             setattr(self, attr, val)
-        if not (self.host and self.port):
-            conn = self._conn_from_toml()
-            self.host = conn["host"]
-            self.port = conn["port"]
-            self.password = conn["password"]
+
+        self.logger.info(
+            "Connecting with parameters: {host} {port} {password} {subs}".format(
+                **self.__dict__
+            )
+        )
 
         self.ws = websocket.WebSocket()
         self.ws.connect(f"ws://{self.host}:{self.port}")
         self.server_hello = json.loads(self.ws.recv())
 
-    def _conn_from_toml(self):
+    def _conn_from_toml(self) -> dict:
+        conn = {}
         filepath = Path.cwd() / "config.toml"
-        with open(filepath, "rb") as f:
-            conn = tomllib.load(f)
-        return conn["connection"]
+        if filepath.exists():
+            with open(filepath, "rb") as f:
+                conn = tomllib.load(f)
+        return conn["connection"] if "connection" in conn else conn
 
     def authenticate(self):
         payload = {
@@ -52,6 +54,8 @@ class ObsClient:
         }
 
         if "authentication" in self.server_hello["d"]:
+            if not self.password:
+                raise OBSSDKError("authentication enabled but no password provided")
             secret = base64.b64encode(
                 hashlib.sha256(
                     (
@@ -79,14 +83,13 @@ class ObsClient:
             raise OBSSDKError("failed to identify client with the server")
 
     def req(self, req_type, req_data=None):
-        id = randint(1, 1000)
-        self.logger.debug(f"Sending request with id {id}")
         payload = {
             "op": 6,
-            "d": {"requestType": req_type, "requestId": id},
+            "d": {"requestType": req_type, "requestId": randint(1, 1000)},
         }
         if req_data:
             payload["d"]["requestData"] = req_data
+        self.logger.debug(f"Sending request {payload}")
         self.ws.send(json.dumps(payload))
         response = json.loads(self.ws.recv())
         self.logger.debug(f"Response received {response}")
