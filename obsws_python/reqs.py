@@ -1729,7 +1729,10 @@ class ReqClient:
 
 
         """
-        self.send("SendStreamCaption")
+        payload = {
+            "captionText": caption,
+        }
+        self.send("SendStreamCaption", payload)
 
     def get_record_status(self):
         """
