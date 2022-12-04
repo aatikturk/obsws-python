@@ -5,11 +5,6 @@ import logging
 from pathlib import Path
 from random import randint
 
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
-
 import websocket
 
 from .error import OBSSDKError
@@ -37,6 +32,10 @@ class ObsClient:
         self.server_hello = json.loads(self.ws.recv())
 
     def _conn_from_toml(self) -> dict:
+        try:
+            import tomllib
+        except ModuleNotFoundError:
+            import tomli as tomllib
         conn = {}
         filepath = Path.cwd() / "config.toml"
         if filepath.exists():
