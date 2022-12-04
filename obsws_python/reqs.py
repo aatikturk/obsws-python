@@ -28,7 +28,7 @@ class ReqClient:
     def __repr__(self):
         return type(self).__name__
 
-    def send(self, param, data=None):
+    def send(self, param, data=None, raw=False):
         response = self.base_client.req(param, data)
         if not response["requestStatus"]["result"]:
             error = (
@@ -38,6 +38,8 @@ class ReqClient:
                 error += (f"With message: {response['requestStatus']['comment']}",)
             raise OBSSDKError("\n".join(error))
         if "responseData" in response:
+            if raw:
+                return response["responseData"]
             return as_dataclass(response["requestType"], response["responseData"])
 
     def get_version(self):
