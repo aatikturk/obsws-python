@@ -13,4 +13,7 @@ def teardown_module():
     req_cl.remove_scene("START_TEST")
     req_cl.remove_scene("BRB_TEST")
     req_cl.remove_scene("END_TEST")
+    resp = req_cl.get_studio_mode_enabled()
+    if resp.studio_mode_enabled:
+        req_cl.set_studio_mode_enabled(False)
     req_cl.base_client.ws.close()
