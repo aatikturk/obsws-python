@@ -5,7 +5,6 @@
 
 # A Python SDK for OBS Studio WebSocket v5.0
 
-This is a wrapper around OBS Websocket.
 Not all endpoints in the official documentation are implemented.
 
 ## Requirements
@@ -13,7 +12,7 @@ Not all endpoints in the official documentation are implemented.
 -   [OBS Studio](https://obsproject.com/)
 -   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
     -   With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
--   Python 3.10 or greater
+-   Python 3.9 or greater
 
 ### How to install using pip
 
