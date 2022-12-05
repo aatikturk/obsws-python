@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "A Python SDK for OBS Studio WebSocket v5.0"
 readme = "README.md"
 license = "GPL-3.0-only"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 authors = [
     { name = "Adem Atikturk", email = "aatikturk@gmail.com" },
 ]
@@ -37,7 +37,18 @@ include = [
 ]
 
 [tool.hatch.envs.e.scripts]
-events = "py {root}\\examples\\events\\."
-hotkeys = "py {root}\\examples\\hotkeys\\."
-levels = "py {root}\\examples\\levels\\."
-scene_rotate = "py {root}\\examples\\scene_rotate\\."
+events = "python {root}\\examples\\events\\."
+hotkeys = "python {root}\\examples\\hotkeys\\."
+levels = "python {root}\\examples\\levels\\."
+scene_rotate = "python {root}\\examples\\scene_rotate\\."
+
+[tool.hatch.envs.test]
+dependencies = [
+  "pytest",
+]
+
+[tool.hatch.envs.test.scripts]
+run = 'pytest -v'
+
+[[tool.hatch.envs.test.matrix]]
+python = ["39", "310", "311"]
