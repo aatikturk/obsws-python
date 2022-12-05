@@ -5,7 +5,7 @@ from threading import Thread
 
 from .baseclient import ObsClient
 from .callback import Callback
-from .enum import Subs
+from .subs import Subs
 
 """
 A class to interact with obs-websocket events
@@ -28,6 +28,11 @@ class EventClient:
         self.subscribe()
 
     def __repr__(self):
+        return type(self).__name__ + "({host} {port} {password} {subs})".format(
+            **self.base_client.__dict__
+        )
+
+    def __str__(self):
         return type(self).__name__
 
     def subscribe(self):
