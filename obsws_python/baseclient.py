@@ -14,7 +14,7 @@ class ObsClient:
     logger = logging.getLogger("baseclient.obsclient")
 
     def __init__(self, **kwargs):
-        defaultkwargs = {"host": "localhost", "port": 4455, "password": None, "subs": 0}
+        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0}
         if not any(key in kwargs for key in ("host", "port", "password")):
             kwargs |= self._conn_from_toml()
         kwargs = defaultkwargs | kwargs
@@ -22,7 +22,7 @@ class ObsClient:
             setattr(self, attr, val)
 
         self.logger.info(
-            "Connecting with parameters: {host} {port} {password} {subs}".format(
+            "Connecting with parameters: host='{host}' port={port} password='{password}' subs={subs}".format(
                 **self.__dict__
             )
         )

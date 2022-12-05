@@ -26,7 +26,7 @@ By default the clients connect with parameters:
 
 -   `host`: "localhost"
 -   `port`: 4455
--   `password`: None
+-   `password`: ""
 
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 

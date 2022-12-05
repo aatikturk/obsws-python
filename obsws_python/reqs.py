@@ -26,8 +26,10 @@ class ReqClient:
         self.base_client.ws.close()
 
     def __repr__(self):
-        return type(self).__name__ + "({host} {port} {password})".format(
-            **self.base_client.__dict__
+        return type(
+            self
+        ).__name__ + "(host='{host}', port={port}, password='{password}')".format(
+            **self.base_client.__dict__,
         )
 
     def __str__(self):

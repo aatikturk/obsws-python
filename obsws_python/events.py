@@ -28,8 +28,10 @@ class EventClient:
         self.subscribe()
 
     def __repr__(self):
-        return type(self).__name__ + "({host} {port} {password} {subs})".format(
-            **self.base_client.__dict__
+        return type(
+            self
+        ).__name__ + "(host='{host}', port={port}, password='{password}', subs={subs})".format(
+            **self.base_client.__dict__,
         )
 
     def __str__(self):
