@@ -1494,7 +1494,7 @@ class ReqClient:
         payload = {
             "sceneName": scene_name,
             "sceneItemId": item_id,
-            "sceneItemLocked": item_index,
+            "sceneItemIndex": item_index,
         }
         self.send("SetSceneItemIndex", payload)
 
