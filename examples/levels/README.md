@@ -4,7 +4,7 @@ Prints POSTFADER level values for audio device `Desktop Audio`. If mute toggled 
 
 ## Use
 
-This example assumes the existence of a `config.toml`, placed next to `__main__.py`:
+This example assumes the existence of a `config.toml`, placed in your user home directory:
 
 ```toml
 [connection]

@@ -43,7 +43,7 @@ port = 4455
 password = "mystrongpass"
 ```
 
-It should be placed next to your `__main__.py` file.
+It should be placed in your user home directory.
 
 #### Otherwise:
 
