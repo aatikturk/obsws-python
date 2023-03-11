@@ -4,6 +4,7 @@ import json
 import logging
 from pathlib import Path
 from random import randint
+from typing import Optional
 
 import websocket
 
@@ -36,11 +37,26 @@ class ObsClient:
             import tomllib
         except ModuleNotFoundError:
             import tomli as tomllib
+
+        def get_filepath() -> Optional[Path]:
+            """
+            traverses a list of paths for a 'config.toml'
+            returns the first config file found or None.
+            """
+            filepaths = [
+                Path.cwd() / "config.toml",
+                Path.home() / "config.toml",
+                Path.home() / ".config" / "obsws-python" / "config.toml",
+            ]
+            for filepath in filepaths:
+                if filepath.exists():
+                    return filepath
+
         conn = {}
-        filepath = Path.cwd() / "config.toml"
-        if filepath.exists():
+        if filepath := get_filepath():
             with open(filepath, "rb") as f:
                 conn = tomllib.load(f)
+            self.logger.info(f"loading config from {filepath}")
         return conn["connection"] if "connection" in conn else conn
 
     def authenticate(self):
