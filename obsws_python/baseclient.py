@@ -15,7 +15,7 @@ class ObsClient:
     logger = logging.getLogger("baseclient.obsclient")
 
     def __init__(self, **kwargs):
-        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0}
+        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0, "timeout":3}
         if not any(key in kwargs for key in ("host", "port", "password")):
             kwargs |= self._conn_from_toml()
         kwargs = defaultkwargs | kwargs
@@ -29,7 +29,7 @@ class ObsClient:
         )
 
         self.ws = websocket.WebSocket()
-        self.ws.connect(f"ws://{self.host}:{self.port}")
+        self.ws.connect(f"ws://{self.host}:{self.port}", timeout=self.timeout)
         self.server_hello = json.loads(self.ws.recv())
 
     def _conn_from_toml(self) -> dict:
@@ -105,7 +105,10 @@ class ObsClient:
         if req_data:
             payload["d"]["requestData"] = req_data
         self.logger.debug(f"Sending request {payload}")
-        self.ws.send(json.dumps(payload))
+        try:
+            self.ws.send(json.dumps(payload))
+        except TimeoutError:
+            raise OBSSDKError("Timeout while trying to send the request")
         response = json.loads(self.ws.recv())
         self.logger.debug(f"Response received {response}")
         return response["d"]
