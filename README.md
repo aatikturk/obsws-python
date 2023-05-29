@@ -27,7 +27,7 @@ By default the clients connect with parameters:
 -   `host`: "localhost"
 -   `port`: 4455
 -   `password`: ""
-
+-   `timeout`: 3
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 
 Order of precedence: keyword arguments then config file then default values.
@@ -41,6 +41,7 @@ A valid `config.toml` might look like this:
 host = "localhost"
 port = 4455
 password = "mystrongpass"
+timeout = 3
 ```
 
 It should be placed in your user home directory.
@@ -53,7 +54,7 @@ Example `__main__.py`:
 import obsws_python as obs
 
 # pass conn info if not in config.toml
-cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass')
+cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass', timeout=3)
 
 # Toggle the mute state of your Mic input
 cl.toggle_input_mute('Mic/Aux')
