@@ -7,7 +7,7 @@ from random import randint
 from typing import Optional
 
 import websocket
-
+from websocket._exceptions import WebSocketTimeoutException
 from .error import OBSSDKError
 
 
@@ -15,7 +15,7 @@ class ObsClient:
     logger = logging.getLogger("baseclient.obsclient")
 
     def __init__(self, **kwargs):
-        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0, "timeout":3}
+        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0, "timeout":None}
         if not any(key in kwargs for key in ("host", "port", "password")):
             kwargs |= self._conn_from_toml()
         kwargs = defaultkwargs | kwargs
@@ -107,8 +107,8 @@ class ObsClient:
         self.logger.debug(f"Sending request {payload}")
         try:
             self.ws.send(json.dumps(payload))
-        except TimeoutError:
+            response = json.loads(self.ws.recv())
+        except WebSocketTimeoutException :
             raise OBSSDKError("Timeout while trying to send the request")
-        response = json.loads(self.ws.recv())
         self.logger.debug(f"Response received {response}")
         return response["d"]

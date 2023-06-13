@@ -27,7 +27,7 @@ By default the clients connect with parameters:
 -   `host`: "localhost"
 -   `port`: 4455
 -   `password`: ""
--   `timeout`: 3
+
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 
 Order of precedence: keyword arguments then config file then default values.
