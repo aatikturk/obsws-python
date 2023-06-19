@@ -7,15 +7,22 @@ from random import randint
 from typing import Optional
 
 import websocket
-from websocket._exceptions import WebSocketTimeoutException
-from .error import OBSSDKError
+from websocket import WebSocketTimeoutException
+
+from .error import OBSSDKError, OBSSDKTimeoutError
 
 
 class ObsClient:
     logger = logging.getLogger("baseclient.obsclient")
 
     def __init__(self, **kwargs):
-        defaultkwargs = {"host": "localhost", "port": 4455, "password": "", "subs": 0, "timeout":None}
+        defaultkwargs = {
+            "host": "localhost",
+            "port": 4455,
+            "password": "",
+            "subs": 0,
+            "timeout": None,
+        }
         if not any(key in kwargs for key in ("host", "port", "password")):
             kwargs |= self._conn_from_toml()
         kwargs = defaultkwargs | kwargs
@@ -23,14 +30,21 @@ class ObsClient:
             setattr(self, attr, val)
 
         self.logger.info(
-            "Connecting with parameters: host='{host}' port={port} password='{password}' subs={subs}".format(
+            "Connecting with parameters: host='{host}' port={port} password='{password}' subs={subs} timeout={timeout}".format(
                 **self.__dict__
             )
         )
 
-        self.ws = websocket.WebSocket()
-        self.ws.connect(f"ws://{self.host}:{self.port}", timeout=self.timeout)
-        self.server_hello = json.loads(self.ws.recv())
+        try:
+            self.ws = websocket.WebSocket()
+            self.ws.connect(f"ws://{self.host}:{self.port}", timeout=self.timeout)
+            self.server_hello = json.loads(self.ws.recv())
+        except ValueError as e:
+            self.logger.error(f"{type(e).__name__}: {e}")
+            raise
+        except (ConnectionRefusedError, WebSocketTimeoutException) as e:
+            self.logger.exception(f"{type(e).__name__}: {e}")
+            raise
 
     def _conn_from_toml(self) -> dict:
         try:
@@ -108,7 +122,8 @@ class ObsClient:
         try:
             self.ws.send(json.dumps(payload))
             response = json.loads(self.ws.recv())
-        except WebSocketTimeoutException :
-            raise OBSSDKError("Timeout while trying to send the request")
+        except WebSocketTimeoutException as e:
+            self.logger.exception(f"{type(e).__name__}: {e}")
+            raise OBSSDKTimeoutError("Timeout while trying to send the request") from e
         self.logger.debug(f"Response received {response}")
         return response["d"]

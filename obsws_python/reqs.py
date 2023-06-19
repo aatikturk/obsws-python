@@ -28,7 +28,7 @@ class ReqClient:
     def __repr__(self):
         return type(
             self
-        ).__name__ + "(host='{host}', port={port}, password='{password}')".format(
+        ).__name__ + "(host='{host}', port={port}, password='{password}', timeout={timeout})".format(
             **self.base_client.__dict__,
         )
 
