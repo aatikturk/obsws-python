@@ -1,4 +1,6 @@
 class OBSSDKError(Exception):
-    """general errors"""
+    """Exception raised when general errors occur"""
 
-    pass
+
+class OBSSDKTimeoutError(Exception):
+    """Exception raised when a connection times out"""
