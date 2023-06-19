@@ -3,8 +3,11 @@ import logging
 import time
 from threading import Thread
 
+from websocket import WebSocketTimeoutException
+
 from .baseclient import ObsClient
 from .callback import Callback
+from .error import OBSSDKTimeoutError
 from .subs import Subs
 
 """
@@ -30,7 +33,7 @@ class EventClient:
     def __repr__(self):
         return type(
             self
-        ).__name__ + "(host='{host}', port={port}, password='{password}', subs={subs})".format(
+        ).__name__ + "(host='{host}', port={port}, password='{password}', subs={subs}, timeout={timeout})".format(
             **self.base_client.__dict__,
         )
 
@@ -49,7 +52,11 @@ class EventClient:
         """
         self.running = True
         while self.running:
-            event = json.loads(self.base_client.ws.recv())
+            try:
+                event = json.loads(self.base_client.ws.recv())
+            except WebSocketTimeoutException as e:
+                self.logger.exception(f"{type(e).__name__}: {e}")
+                raise OBSSDKTimeoutError("Timeout while waiting for event") from e
             self.logger.debug(f"Event received {event}")
             type_, data = (
                 event["d"].get("eventType"),
