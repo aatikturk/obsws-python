@@ -27,6 +27,7 @@ By default the clients connect with parameters:
 -   `host`: "localhost"
 -   `port`: 4455
 -   `password`: ""
+-   `timeout`: None
 
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 
@@ -41,7 +42,6 @@ A valid `config.toml` might look like this:
 host = "localhost"
 port = 4455
 password = "mystrongpass"
-timeout = 3
 ```
 
 It should be placed in your user home directory.
@@ -131,6 +131,8 @@ def on_scene_created(data):
 If a request fails an `OBSSDKError` will be raised with a status code.
 
 For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
+
+If a timeout occurs during sending/receiving a request or receiving an event an `OBSSDKTimeoutError` will be raised.
 
 ### Logging
 

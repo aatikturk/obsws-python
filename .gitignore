@@ -48,3 +48,6 @@ venv.bak/
 # Test/config
 quick.py
 config.toml
+obsws.log
+
+.vscode/
