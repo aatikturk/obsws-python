@@ -17,8 +17,9 @@ class ReqClient:
     def __init__(self, **kwargs):
         self.logger = logger.getChild(self.__class__.__name__)
         self.base_client = ObsClient(**kwargs)
-        if self.base_client.authenticate():
-            self.logger.info(f"Successfully identified {self} with the server")
+        auth_status = self.base_client.authenticate()
+        if auth_status:
+            self.logger.info(f"Successfully identified {self} with the server using rpcVersion:{auth_status['d']['negotiatedRpcVersion']}")
 
     def __enter__(self):
         return self

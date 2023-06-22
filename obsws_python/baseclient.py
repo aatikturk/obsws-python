@@ -108,7 +108,7 @@ class ObsClient:
         self.ws.send(json.dumps(payload))
         try:
             response = json.loads(self.ws.recv())
-            return response["op"] == 2
+            return response
         except json.decoder.JSONDecodeError:
             raise OBSSDKError("failed to identify client with the server")
 

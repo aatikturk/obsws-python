@@ -27,8 +27,9 @@ class EventClient:
         defaultkwargs = {"subs": Subs.LOW_VOLUME}
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
-        if self.base_client.authenticate():
-            self.logger.info(f"Successfully identified {self} with the server")
+        auth_status = self.base_client.authenticate()
+        if auth_status:
+            self.logger.info(f"Successfully identified {self} with the server using rpcVersion:{auth_status['d']['negotiatedRpcVersion']}")
         self.callback = Callback()
         self.subscribe()
 
