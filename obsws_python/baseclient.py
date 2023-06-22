@@ -11,11 +11,12 @@ from websocket import WebSocketTimeoutException
 
 from .error import OBSSDKError, OBSSDKTimeoutError
 
+logger = logging.getLogger(__name__)
+
 
 class ObsClient:
-    logger = logging.getLogger("baseclient.obsclient")
-
     def __init__(self, **kwargs):
+        self.logger = logger.getChild(self.__class__.__name__)
         defaultkwargs = {
             "host": "localhost",
             "port": 4455,

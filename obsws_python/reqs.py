@@ -10,11 +10,12 @@ defined in official github repo
 https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#Requests
 """
 
+logger = logging.getLogger(__name__)
+
 
 class ReqClient:
-    logger = logging.getLogger("reqs.reqclient")
-
     def __init__(self, **kwargs):
+        self.logger = logger.getChild(self.__class__.__name__)
         self.base_client = ObsClient(**kwargs)
         if self.base_client.authenticate():
             self.logger.info(f"Successfully identified {self} with the server")
