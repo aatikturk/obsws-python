@@ -16,12 +16,14 @@ defined in official github repo
 https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events
 """
 
+logger = logging.getLogger(__name__)
+
 
 class EventClient:
-    logger = logging.getLogger("events.eventclient")
     DELAY = 0.001
 
     def __init__(self, **kwargs):
+        self.logger = logger.getChild(self.__class__.__name__)
         defaultkwargs = {"subs": Subs.LOW_VOLUME}
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
