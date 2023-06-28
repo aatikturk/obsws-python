@@ -7,7 +7,7 @@ from websocket import WebSocketTimeoutException
 
 from .baseclient import ObsClient
 from .callback import Callback
-from .error import OBSSDKTimeoutError
+from .error import OBSSDKError, OBSSDKTimeoutError
 from .subs import Subs
 
 """
@@ -27,9 +27,14 @@ class EventClient:
         defaultkwargs = {"subs": Subs.LOW_VOLUME}
         kwargs = defaultkwargs | kwargs
         self.base_client = ObsClient(**kwargs)
-        auth_status = self.base_client.authenticate()
-        if auth_status:
-            self.logger.info(f"Successfully identified {self} with the server using rpcVersion:{auth_status['d']['negotiatedRpcVersion']}")
+        try:
+            success = self.base_client.authenticate()
+            self.logger.info(
+                f"Successfully identified {self} with the server using RPC version:{success['negotiatedRpcVersion']}"
+            )
+        except OBSSDKError as e:
+            self.logger.error(f"{type(e).__name__}: {e}")
+            raise
         self.callback = Callback()
         self.subscribe()
 
