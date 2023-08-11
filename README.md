@@ -9,10 +9,10 @@ Not all endpoints in the official documentation are implemented.
 
 ## Requirements
 
--   [OBS Studio](https://obsproject.com/)
--   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
-    -   With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
--   Python 3.9 or greater
+- [OBS Studio](https://obsproject.com/)
+- [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
+  - With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
+- Python 3.9 or greater
 
 ### How to install using pip
 
@@ -24,10 +24,10 @@ pip install obsws-python
 
 By default the clients connect with parameters:
 
--   `host`: "localhost"
--   `port`: 4455
--   `password`: ""
--   `timeout`: None
+- `host`: "localhost"
+- `port`: 4455
+- `password`: ""
+- `timeout`: None
 
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 
@@ -128,7 +128,9 @@ def on_scene_created(data):
 
 ### Errors
 
-If a request fails an `OBSSDKError` will be raised with a status code.
+A base error class `OBSSDKError` may be used to catch OBSSDK error types.
+
+If a request returns an error code an `OBSSDKRequestError` will be raised.
 
 For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
 
@@ -165,4 +167,4 @@ pytest -v
 
 For the full documentation:
 
--   [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
+- [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
