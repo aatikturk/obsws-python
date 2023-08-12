@@ -7,7 +7,7 @@ from tests import req_cl
 class TestErrors:
     __test__ = True
 
-    def test_it_raises_an_obssdk_error_on_bad_connection_info(self):
+    def test_it_raises_an_obssdk_error_on_incorrect_password(self):
         bad_conn = {"host": "localhost", "port": 4455, "password": "incorrectpassword"}
         with pytest.raises(
             obsws.error.OBSSDKError,
@@ -27,5 +27,9 @@ class TestErrors:
         with pytest.raises(
             obsws.error.OBSSDKRequestError,
             match="Request SetCurrentProgramScene returned code 600. With message: No source was found by the name of `invalid`.",
-        ):
+        ) as exc_info:
             req_cl.set_current_program_scene("invalid")
+
+        e = exc_info.value
+        assert e.req_name == "SetCurrentProgramScene"
+        assert e.code == 600
