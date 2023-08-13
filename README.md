@@ -128,13 +128,13 @@ def on_scene_created(data):
 
 ### Errors
 
-A base error class `OBSSDKError` may be used to catch OBSSDK error types.
-
-If a request returns an error code an `OBSSDKRequestError` will be raised.
-
-For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
-
-If a timeout occurs during sending/receiving a request or receiving an event an `OBSSDKTimeoutError` will be raised.
+- `OBSSDKError`: Base error class.
+- `OBSSDKTimeoutError`: Raised if a timeout occurs during sending/receiving a request or receiving an event
+- `OBSSDKRequestError`: Raised when a request returns an error code.
+  - The following attributes are available:
+    - `req_name`: name of the request.
+    - `code`: request status code.
+  - For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
 
 ### Logging
 
