@@ -62,7 +62,7 @@ cl.toggle_input_mute('Mic/Aux')
 
 ### Requests
 
-Method names for requests match the API calls but snake cased.
+Method names for requests match the API calls but snake cased. If a successful call is made with the Request client and the response is expected to contain fields then a response object will be returned. You may then access the response fields as class attributes. They will be snake cased.
 
 example:
 
@@ -70,11 +70,26 @@ example:
 # load conn info from config.toml
 cl = obs.ReqClient()
 
-# GetVersion
+# GetVersion, returns a response object
 resp = cl.get_version()
+# Access it's field as an attribute
+print(f"OBS Version: {resp.obs_version}")
+
 
 # SetCurrentProgramScene
 cl.set_current_program_scene("BRB")
+```
+
+#### `send(param, data=None, raw=False)`
+
+If you prefer to work with the JSON data directly the {ReqClient}.send() method accepts an argument, `raw`. If set to True the raw response data will be returned, instead of a response object.
+
+example:
+
+```python
+resp = cl_req.send("GetVersion", raw=True)
+
+print(f"response data: {resp}")
 ```
 
 For a full list of requests refer to [Requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests)
