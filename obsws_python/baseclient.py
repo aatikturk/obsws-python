@@ -43,7 +43,7 @@ class ObsClient:
         except ValueError as e:
             self.logger.error(f"{type(e).__name__}: {e}")
             raise
-        except (ConnectionRefusedError, WebSocketTimeoutException) as e:
+        except (ConnectionRefusedError, TimeoutError, WebSocketTimeoutException) as e:
             self.logger.exception(f"{type(e).__name__}: {e}")
             raise
 
@@ -97,9 +97,9 @@ class ObsClient:
             auth = base64.b64encode(
                 hashlib.sha256(
                     (
-                        secret.decode()
-                        + self.server_hello["d"]["authentication"]["challenge"]
-                    ).encode()
+                        secret
+                        + self.server_hello["d"]["authentication"]["challenge"].encode()
+                    )
                 ).digest()
             ).decode()
 
@@ -110,7 +110,7 @@ class ObsClient:
             response = json.loads(self.ws.recv())
             if response["op"] != 2:
                 raise OBSSDKError(
-                    "failed to identify client with the server, expected response with OpCode 2 Identified"
+                    "failed to identify client with the server, expected response with OpCode 2"
                 )
             return response["d"]
         except json.decoder.JSONDecodeError:

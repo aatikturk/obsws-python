@@ -1,7 +1,7 @@
 import logging
 
 from .baseclient import ObsClient
-from .error import OBSSDKError
+from .error import OBSSDKError, OBSSDKRequestError
 from .util import as_dataclass
 
 """
@@ -43,14 +43,17 @@ class ReqClient:
         return type(self).__name__
 
     def send(self, param, data=None, raw=False):
-        response = self.base_client.req(param, data)
-        if not response["requestStatus"]["result"]:
-            error = (
-                f"Request {response['requestType']} returned code {response['requestStatus']['code']}",
-            )
-            if "comment" in response["requestStatus"]:
-                error += (f"With message: {response['requestStatus']['comment']}",)
-            raise OBSSDKError("\n".join(error))
+        try:
+            response = self.base_client.req(param, data)
+            if not response["requestStatus"]["result"]:
+                raise OBSSDKRequestError(
+                    response["requestType"],
+                    response["requestStatus"]["code"],
+                    response["requestStatus"].get("comment"),
+                )
+        except OBSSDKRequestError as e:
+            self.logger.exception(f"{type(e).__name__}: {e}")
+            raise
         if "responseData" in response:
             if raw:
                 return response["responseData"]

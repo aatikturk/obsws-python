@@ -9,10 +9,10 @@ Not all endpoints in the official documentation are implemented.
 
 ## Requirements
 
--   [OBS Studio](https://obsproject.com/)
--   [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
-    -   With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
--   Python 3.9 or greater
+- [OBS Studio](https://obsproject.com/)
+- [OBS Websocket v5 Plugin](https://github.com/obsproject/obs-websocket/releases/tag/5.0.0)
+  - With the release of OBS Studio version 28, Websocket plugin is included by default. But it should be manually installed for earlier versions of OBS.
+- Python 3.9 or greater
 
 ### How to install using pip
 
@@ -24,10 +24,10 @@ pip install obsws-python
 
 By default the clients connect with parameters:
 
--   `host`: "localhost"
--   `port`: 4455
--   `password`: ""
--   `timeout`: None
+- `host`: "localhost"
+- `port`: 4455
+- `password`: ""
+- `timeout`: None
 
 You may override these parameters by storing them in a toml config file or passing them as keyword arguments.
 
@@ -62,7 +62,7 @@ cl.toggle_input_mute('Mic/Aux')
 
 ### Requests
 
-Method names for requests match the API calls but snake cased.
+Method names for requests match the API calls but snake cased. If a successful call is made with the Request client and the response is expected to contain fields then a response object will be returned. You may then access the response fields as class attributes. They will be snake cased.
 
 example:
 
@@ -70,11 +70,26 @@ example:
 # load conn info from config.toml
 cl = obs.ReqClient()
 
-# GetVersion
+# GetVersion, returns a response object
 resp = cl.get_version()
+# Access it's field as an attribute
+print(f"OBS Version: {resp.obs_version}")
+
 
 # SetCurrentProgramScene
 cl.set_current_program_scene("BRB")
+```
+
+#### `send(param, data=None, raw=False)`
+
+If you prefer to work with the JSON data directly the {ReqClient}.send() method accepts an argument, `raw`. If set to True the raw response data will be returned, instead of a response object.
+
+example:
+
+```python
+resp = cl_req.send("GetVersion", raw=True)
+
+print(f"response data: {resp}")
 ```
 
 For a full list of requests refer to [Requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests)
@@ -128,11 +143,13 @@ def on_scene_created(data):
 
 ### Errors
 
-If a request fails an `OBSSDKError` will be raised with a status code.
-
-For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
-
-If a timeout occurs during sending/receiving a request or receiving an event an `OBSSDKTimeoutError` will be raised.
+- `OBSSDKError`: Base error class.
+- `OBSSDKTimeoutError`: Raised if a timeout occurs during sending/receiving a request or receiving an event
+- `OBSSDKRequestError`: Raised when a request returns an error code.
+  - The following attributes are available:
+    - `req_name`: name of the request.
+    - `code`: request status code.
+  - For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
 
 ### Logging
 
@@ -165,4 +182,4 @@ pytest -v
 
 For the full documentation:
 
--   [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
+- [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
