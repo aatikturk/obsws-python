@@ -1,4 +1,5 @@
 import logging
+from warnings import warn
 
 from .baseclient import ObsClient
 from .error import OBSSDKError, OBSSDKRequestError
@@ -1938,3 +1939,66 @@ class ReqClient:
 
         """
         return self.send("GetMonitorList")
+
+    def open_video_mix_projector(
+        self, video_mix_type, monitor_index=-1, projector_geometry=None
+    ):
+        """
+        Opens a projector for a specific output video mix.
+
+        The available mix types are:
+            OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW
+            OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM
+            OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW
+
+        :param video_mix_type: Type of mix to open.
+        :type video_mix_type:  str
+        :param monitor_index: Monitor index, use GetMonitorList to obtain index
+        :type monitor_index:  int
+        :param projector_geometry:
+            Size/Position data for a windowed projector,
+            in Qt Base64 encoded format. Mutually exclusive with monitorIndex
+        :type projector_geometry: str
+
+        """
+        warn(
+            "open_video_mix_projector request serves to provide feature parity with 4.x. "
+            "It is very likely to be changed/deprecated in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        payload = {
+            "videoMixType": video_mix_type,
+            "monitorIndex": monitor_index,
+            "projectorGeometry": projector_geometry,
+        }
+        self.send("OpenVideoMixProjector", payload)
+
+    def open_source_projector(
+        self, source_name, monitor_index=-1, projector_geometry=None
+    ):
+        """
+        Opens a projector for a source.
+
+        :param source_name: Name of the source to open a projector for
+        :type source_name:  str
+        :param monitor_index: Monitor index, use GetMonitorList to obtain index
+        :type monitor_index:  int
+        :param projector_geometry:
+            Size/Position data for a windowed projector,
+            in Qt Base64 encoded format. Mutually exclusive with monitorIndex
+        :type projector_geometry: str
+
+        """
+        warn(
+            "open_source_projector request serves to provide feature parity with 4.x. "
+            "It is very likely to be changed/deprecated in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        payload = {
+            "sourceName": source_name,
+            "monitorIndex": monitor_index,
+            "projectorGeometry": projector_geometry,
+        }
+        self.send("OpenSourceProjector", payload)
