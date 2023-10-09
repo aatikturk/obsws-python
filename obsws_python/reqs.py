@@ -1956,8 +1956,8 @@ class ReqClient:
         :param monitor_index: Monitor index, use GetMonitorList to obtain index
         :type monitor_index:  int
         :param projector_geometry:
-            Size/Position data for a windowed projector,
-            in Qt Base64 encoded format. Mutually exclusive with monitorIndex
+            Size/Position data for a windowed projector, in Qt Base64 encoded format.
+            Mutually exclusive with monitorIndex
         :type projector_geometry: str
 
         """
@@ -1985,8 +1985,8 @@ class ReqClient:
         :param monitor_index: Monitor index, use GetMonitorList to obtain index
         :type monitor_index:  int
         :param projector_geometry:
-            Size/Position data for a windowed projector,
-            in Qt Base64 encoded format. Mutually exclusive with monitorIndex
+            Size/Position data for a windowed projector, in Qt Base64 encoded format.
+            Mutually exclusive with monitorIndex
         :type projector_geometry: str
 
         """
