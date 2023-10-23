@@ -432,6 +432,19 @@ class ReqClient:
         """
         return self.send("GetRecordDirectory")
 
+    def set_record_directory(self, recordDirectory):
+        """
+        Sets the current directory that the record output writes files to. 
+        IMPORTANT NOTE: Requires obs websocket v5.3 or higher.
+
+        :param recordDirectory: Output directory
+        :type recordDirectory: str
+        """
+        payload = {
+            "recordDirectory": recordDirectory,
+        }
+        return self.send("SetRecordDirectory", payload)
+    
     def get_source_active(self, name):
         """
         Gets the active and show state of a source
