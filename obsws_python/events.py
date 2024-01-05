@@ -1,9 +1,8 @@
 import json
 import logging
-import time
-from threading import Thread
+import threading
 
-from websocket import WebSocketTimeoutException
+from websocket import WebSocketConnectionClosedException, WebSocketTimeoutException
 
 from .baseclient import ObsClient
 from .callback import Callback
@@ -20,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class EventClient:
-    DELAY = 0.001
-
     def __init__(self, **kwargs):
         self.logger = logger.getChild(self.__class__.__name__)
         defaultkwargs = {"subs": Subs.LOW_VOLUME}
@@ -38,6 +35,12 @@ class EventClient:
         self.callback = Callback()
         self.subscribe()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.disconnect()
+
     def __repr__(self):
         return type(
             self
@@ -49,33 +52,39 @@ class EventClient:
         return type(self).__name__
 
     def subscribe(self):
-        worker = Thread(target=self.trigger, daemon=True)
-        worker.start()
+        stop_event = threading.Event()
+        self.worker = threading.Thread(
+            target=self.trigger, daemon=True, args=(stop_event,)
+        )
+        self.worker.start()
 
-    def trigger(self):
+    def trigger(self, stop_event):
         """
         Continuously listen for events.
 
         Triggers a callback on event received.
         """
-        self.running = True
-        while self.running:
+        while not stop_event.is_set():
             try:
-                event = json.loads(self.base_client.ws.recv())
+                if r := self.base_client.ws.recv():
+                    event = json.loads(r)
+                    self.logger.debug(f"Event received {event}")
+                    type_, data = (
+                        event["d"].get("eventType"),
+                        event["d"].get("eventData"),
+                    )
+                    self.callback.trigger(type_, data if data else {})
             except WebSocketTimeoutException as e:
                 self.logger.exception(f"{type(e).__name__}: {e}")
                 raise OBSSDKTimeoutError("Timeout while waiting for event") from e
-            self.logger.debug(f"Event received {event}")
-            type_, data = (
-                event["d"].get("eventType"),
-                event["d"].get("eventData"),
-            )
-            self.callback.trigger(type_, data if data else {})
-            time.sleep(self.DELAY)
+            except WebSocketConnectionClosedException as e:
+                self.logger.debug(f"{type(e).__name__} terminating the event thread")
+                stop_event.set()
 
-    def unsubscribe(self):
-        """
-        stop listening for events
-        """
-        self.running = False
+    def disconnect(self):
+        """stop listening for events"""
+
         self.base_client.ws.close()
+        self.worker.join()
+
+    unsubscribe = disconnect
