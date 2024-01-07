@@ -52,6 +52,7 @@ class EventClient:
         return type(self).__name__
 
     def subscribe(self):
+        self.base_client.ws.settimeout(None)
         stop_event = threading.Event()
         self.worker = threading.Thread(
             target=self.trigger, daemon=True, args=(stop_event,)
