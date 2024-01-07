@@ -1,6 +1,7 @@
 import inspect
 
 import keyboard
+
 import obsws_python as obs
 
 
@@ -9,6 +10,12 @@ class Observer:
         self._client = obs.EventClient()
         self._client.callback.register(self.on_current_program_scene_changed)
         print(f"Registered events: {self._client.callback.get()}")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._client.disconnect()
 
     @property
     def event_identifier(self):
@@ -31,13 +38,12 @@ def set_scene(scene, *args):
 
 
 if __name__ == "__main__":
-    req_client = obs.ReqClient()
-    observer = Observer()
+    with obs.ReqClient() as req_client:
+        with Observer() as observer:
+            keyboard.add_hotkey("0", version)
+            keyboard.add_hotkey("1", set_scene, args=("START",))
+            keyboard.add_hotkey("2", set_scene, args=("BRB",))
+            keyboard.add_hotkey("3", set_scene, args=("END",))
 
-    keyboard.add_hotkey("0", version)
-    keyboard.add_hotkey("1", set_scene, args=("START",))
-    keyboard.add_hotkey("2", set_scene, args=("BRB",))
-    keyboard.add_hotkey("3", set_scene, args=("END",))
-
-    print("press ctrl+enter to quit")
-    keyboard.wait("ctrl+enter")
+            print("press ctrl+enter to quit")
+            keyboard.wait("ctrl+enter")

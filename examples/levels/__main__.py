@@ -9,6 +9,8 @@ LEVELTYPE = IntEnum(
     start=0,
 )
 
+DEVICE = "Desktop Audio"
+
 
 def on_input_mute_state_changed(data):
     """An input's mute state has changed."""
@@ -32,15 +34,14 @@ def on_input_volume_meters(data):
 
 
 def main():
-    client = obs.EventClient(subs=(obs.Subs.LOW_VOLUME | obs.Subs.INPUTVOLUMEMETERS))
-    client.callback.register([on_input_volume_meters, on_input_mute_state_changed])
+    with obs.EventClient(
+        subs=(obs.Subs.LOW_VOLUME | obs.Subs.INPUTVOLUMEMETERS)
+    ) as client:
+        client.callback.register([on_input_volume_meters, on_input_mute_state_changed])
 
-    while cmd := input("<Enter> to exit>\n"):
-        if not cmd:
-            break
+        while _ := input("<Enter> to exit>\n"):
+            pass
 
 
 if __name__ == "__main__":
-    DEVICE = "Desktop Audio"
-
     main()
