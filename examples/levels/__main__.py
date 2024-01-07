@@ -39,7 +39,7 @@ def main():
     ) as client:
         client.callback.register([on_input_volume_meters, on_input_mute_state_changed])
 
-        while _ := input("<Enter> to exit>\n"):
+        while _ := input("Press <Enter> to exit\n"):
             pass
 
 
