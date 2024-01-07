@@ -78,7 +78,7 @@ class EventClient:
             except WebSocketTimeoutException as e:
                 self.logger.exception(f"{type(e).__name__}: {e}")
                 raise OBSSDKTimeoutError("Timeout while waiting for event") from e
-            except WebSocketConnectionClosedException as e:
+            except (WebSocketConnectionClosedException, OSError) as e:
                 self.logger.debug(f"{type(e).__name__} terminating the event thread")
                 stop_event.set()
 
