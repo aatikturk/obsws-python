@@ -67,8 +67,8 @@ class EventClient:
         """
         while not stop_event.is_set():
             try:
-                if r := self.base_client.ws.recv():
-                    event = json.loads(r)
+                if response := self.base_client.ws.recv():
+                    event = json.loads(response)
                     self.logger.debug(f"Event received {event}")
                     type_, data = (
                         event["d"].get("eventType"),
