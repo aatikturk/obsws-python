@@ -31,7 +31,7 @@ class ReqClient:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.base_client.ws.close()
+        self.disconnect()
 
     def __repr__(self):
         return type(
@@ -42,6 +42,9 @@ class ReqClient:
 
     def __str__(self):
         return type(self).__name__
+    
+    def disconnect(self):
+        self.base_client.ws.close()
 
     def send(self, param, data=None, raw=False):
         try:

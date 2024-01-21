@@ -17,6 +17,12 @@ class Observer:
         print(f"Registered events: {self._client.callback.get()}")
         self.running = True
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._client.disconnect()
+
     def on_current_program_scene_changed(self, data):
         """The current program scene has changed."""
         print(f"Switched to scene {data.scene_name}")
@@ -31,13 +37,11 @@ class Observer:
 
     def on_exit_started(self, _):
         """OBS has begun the shutdown process."""
-        print(f"OBS closing!")
-        self._client.unsubscribe()
+        print("OBS closing!")
         self.running = False
 
 
 if __name__ == "__main__":
-    observer = Observer()
-
-    while observer.running:
-        time.sleep(0.1)
+    with Observer() as observer:
+        while observer.running:
+            time.sleep(0.1)
