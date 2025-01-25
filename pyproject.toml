@@ -7,7 +7,7 @@ name = "obsws-python"
 dynamic = ["version"]
 description = "A Python SDK for OBS Studio WebSocket v5.0"
 readme = "README.md"
-license = "GPL-3.0-only"
+license = { text = "GPL-3.0-only" }
 requires-python = ">=3.9"
 authors = [
     { name = "Adem Atikturk", email = "aatikturk@gmail.com" },
