@@ -138,17 +138,19 @@ class ReqClient:
 
     get_hotkey_list = get_hot_key_list
 
-    def trigger_hot_key_by_name(self, hotkeyName):
+    def trigger_hot_key_by_name(self, hotkeyName, contextName=None):
         """
         Triggers a hotkey using its name. For hotkey names
         See GetHotkeyList
 
         :param hotkeyName: Name of the hotkey to trigger
         :type hotkeyName: str
+        :param contextName: Name of context of the hotkey to trigger
+        :type contextName: str, optional
 
 
         """
-        payload = {"hotkeyName": hotkeyName}
+        payload = {"hotkeyName": hotkeyName, "contextName": contextName}
         self.send("TriggerHotkeyByName", payload)
 
     trigger_hotkey_by_name = trigger_hot_key_by_name
