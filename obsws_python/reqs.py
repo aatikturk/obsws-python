@@ -138,39 +138,39 @@ class ReqClient:
 
     get_hotkey_list = get_hot_key_list
 
-    def trigger_hot_key_by_name(self, hotkeyName):
+    def trigger_hot_key_by_name(self, hotkeyName, contextName=None):
         """
         Triggers a hotkey using its name. For hotkey names
         See GetHotkeyList
 
         :param hotkeyName: Name of the hotkey to trigger
         :type hotkeyName: str
+        :param contextName: Name of context of the hotkey to trigger
+        :type contextName: str, optional
 
 
         """
-        payload = {"hotkeyName": hotkeyName}
+        payload = {"hotkeyName": hotkeyName, "contextName": contextName}
         self.send("TriggerHotkeyByName", payload)
 
     trigger_hotkey_by_name = trigger_hot_key_by_name
 
     def trigger_hot_key_by_key_sequence(
-        self, keyId, pressShift, pressCtrl, pressAlt, pressCmd
+        self, keyId, pressShift=None, pressCtrl=None, pressAlt=None, pressCmd=None
     ):
         """
         Triggers a hotkey using a sequence of keys.
 
         :param keyId: The OBS key ID to use. See https://github.com/obsproject/obs-studio/blob/master/libobs/obs-hotkeys.h
         :type keyId: str
-        :param keyModifiers: Object containing key modifiers to apply.
-        :type keyModifiers: dict
-        :param keyModifiers.shift: Press Shift
-        :type keyModifiers.shift: bool
-        :param keyModifiers.control: Press CTRL
-        :type keyModifiers.control: bool
-        :param keyModifiers.alt: Press ALT
-        :type keyModifiers.alt: bool
-        :param keyModifiers.cmd: Press CMD (Mac)
-        :type keyModifiers.cmd: bool
+        :param pressShift: Press Shift
+        :type pressShift: bool, optional
+        :param pressCtrl: Press CTRL
+        :type pressCtrl: bool, optional
+        :param pressAlt: Press ALT
+        :type pressAlt: bool, optional
+        :param pressCmd: Press CMD (Mac)
+        :type pressCmd: bool, optional
 
 
         """
