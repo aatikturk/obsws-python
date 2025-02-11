@@ -1,4 +1,5 @@
 import pytest
+
 from obsws_python.callback import Callback
 
 
