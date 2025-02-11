@@ -51,7 +51,7 @@ venv.bak/
 .python-version
 
 # Test/config
-quick.py
+test-*.py
 config.toml
 obsws.log
 

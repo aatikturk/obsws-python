@@ -1,5 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/obsws-python.svg)](https://badge.fury.io/py/obsws-python)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aatikturk/obsstudio_sdk/blob/main/LICENSE)
+[![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
@@ -92,7 +93,7 @@ resp = cl_req.send("GetVersion", raw=True)
 print(f"response data: {resp}")
 ```
 
-For a full list of requests refer to [Requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests)
+For a full list of requests refer to [Requests][obsws-reqs]
 
 ### Events
 
@@ -125,7 +126,7 @@ cl.callback.deregister(on_input_mute_state_changed)
 
 `register(fns)` and `deregister(fns)` accept both single functions and lists of functions.
 
-For a full list of events refer to [Events](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events)
+For a full list of events refer to [Events][obsws-events]
 
 ### Attributes
 
@@ -149,7 +150,7 @@ def on_scene_created(data):
   - The following attributes are available:
     - `req_name`: name of the request.
     - `code`: request status code.
-  - For a full list of status codes refer to [Codes](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus)
+  - For a full list of status codes refer to [Codes][obsws-codes]
 
 ### Logging
 
@@ -168,18 +169,19 @@ logging.basicConfig(level=logging.DEBUG)
 
 ### Tests
 
-First install development dependencies:
+Install [hatch][hatch-install] and then:
 
-`pip install -e .['dev']`
-
-To run all tests:
-
-```
-pytest -v
-```
+`hatch test`
 
 ### Official Documentation
 
 For the full documentation:
 
-- [OBS Websocket SDK](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol)
+- [OBS Websocket SDK][obsws-pro]
+
+
+[obsws-reqs]: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests
+[obsws-events]: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#events
+[obsws-codes]: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requeststatus
+[obsws-pro]: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#obs-websocket-501-protocol
+[hatch-install]: https://hatch.pypa.io/latest/install/

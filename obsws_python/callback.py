@@ -1,4 +1,5 @@
-from typing import Callable, Iterable, Union
+from collections.abc import Callable, Iterable
+from typing import Union
 
 from .util import as_dataclass, to_camel_case, to_snake_case
 

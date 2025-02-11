@@ -18,7 +18,12 @@ class TestAttrs:
 
     def test_get_current_program_scene_attrs(self):
         resp = req_cl.get_current_program_scene()
-        assert resp.attrs() == ["current_program_scene_name"]
+        assert resp.attrs() == [
+            "current_program_scene_name",
+            "current_program_scene_uuid",
+            "scene_name",
+            "scene_uuid",
+        ]
 
     def test_get_transition_kind_list_attrs(self):
         resp = req_cl.get_transition_kind_list()

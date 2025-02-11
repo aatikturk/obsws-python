@@ -96,10 +96,8 @@ class ObsClient:
 
             auth = base64.b64encode(
                 hashlib.sha256(
-                    (
-                        secret
-                        + self.server_hello["d"]["authentication"]["challenge"].encode()
-                    )
+                    secret
+                    + self.server_hello["d"]["authentication"]["challenge"].encode()
                 ).digest()
             ).decode()
 
