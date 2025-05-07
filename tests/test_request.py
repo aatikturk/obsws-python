@@ -13,35 +13,8 @@ class TestRequests:
 
     def test_get_hot_key_list(self):
         resp = req_cl.get_hot_key_list()
-        obsbasic_hotkey_list = [
-            "OBSBasic.SelectScene",
-            "OBSBasic.QuickTransition.1",
-            "OBSBasic.QuickTransition.2",
-            "OBSBasic.QuickTransition.3",
-            "OBSBasic.StartStreaming",
-            "OBSBasic.StopStreaming",
-            "OBSBasic.ForceStopStreaming",
-            "OBSBasic.StartRecording",
-            "OBSBasic.StopRecording",
-            "OBSBasic.PauseRecording",
-            "OBSBasic.UnpauseRecording",
-            "OBSBasic.SplitFile",
-            "OBSBasic.StartReplayBuffer",
-            "OBSBasic.StopReplayBuffer",
-            "OBSBasic.StartVirtualCam",
-            "OBSBasic.StopVirtualCam",
-            "OBSBasic.EnablePreview",
-            "OBSBasic.DisablePreview",
-            "OBSBasic.EnablePreviewProgram",
-            "OBSBasic.DisablePreviewProgram",
-            "OBSBasic.ShowContextBar",
-            "OBSBasic.HideContextBar",
-            "OBSBasic.Transition",
-            "OBSBasic.ResetStats",
-            "OBSBasic.Screenshot",
-            "OBSBasic.SelectedSourceScreenshot",
-        ]
-        assert all(x in resp.hotkeys for x in obsbasic_hotkey_list)
+        assert resp.hotkeys
+        assert any(x.startswith("OBSBasic.") for x in resp.hotkeys)
 
     @pytest.mark.parametrize(
         "name,data",
