@@ -1784,7 +1784,7 @@ class ReqClient:
 
 
         """
-        self.send("ToggleRecord")
+        return self.send("ToggleRecord")
 
     def start_record(self):
         """

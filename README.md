@@ -171,7 +171,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 Install [hatch][hatch-install] and then:
 
-`hatch test`
+```
+hatch test
+```
 
 ### Official Documentation
 
