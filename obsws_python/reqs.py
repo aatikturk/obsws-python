@@ -1100,6 +1100,14 @@ class ReqClient:
         payload = {"position": pos, "release": release}
         self.send("SetTBarPosition", payload)
 
+    def get_source_filter_kind_list(self):
+        """
+        Gets an array of all available source filter kinds.
+
+
+        """
+        return self.send("GetSourceFilterKindList")
+
     def get_source_filter_list(self, name):
         """
         Gets a list of all of a source's filters.
@@ -1310,6 +1318,23 @@ class ReqClient:
             "searchOffset": offset,
         }
         return self.send("GetSceneItemId", payload)
+
+    def get_scene_item_source(self, scene_name, scene_item_id):
+        """
+        Gets the source associated with a scene item.
+
+        :param scene_item_id: Numeric ID of the scene item (>= 0)
+        :type scene_item_id: int
+        :param scene_name: Name of the scene the item is in.
+        :type scene_name: str
+
+
+        """
+        payload = {
+            "sceneItemId": scene_item_id,
+            "sceneName": scene_name,
+        }
+        return self.send("GetSceneItemSource", payload)
 
     def create_scene_item(self, scene_name, source_name, enabled=None):
         """
@@ -1825,6 +1850,28 @@ class ReqClient:
 
         """
         self.send("ResumeRecord")
+
+    def split_record_file(self):
+        """
+        Splits the current file being recorded into a new file.
+
+
+        """
+        self.send("SplitRecordFile")
+
+    def create_record_chapter(self, chapter_name=None):
+        """
+        Adds a new chapter marker to the file currently being recorded.
+
+        Note: As of OBS 30.2.0, the only file format supporting this feature is Hybrid MP4.
+
+        :param chapter_name: Name of the new chapter
+        :type chapter_name: str
+
+
+        """
+        payload = {"chapterName": chapter_name}
+        self.send("CreateRecordChapter", payload)
 
     def get_media_input_status(self, name):
         """
