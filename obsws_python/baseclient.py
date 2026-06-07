@@ -44,7 +44,7 @@ class ObsClient:
             self.logger.error(f"{type(e).__name__}: {e}")
             raise
         except (ConnectionRefusedError, TimeoutError, WebSocketTimeoutException) as e:
-            self.logger.exception(f"{type(e).__name__}: {e}")
+            self.logger.debug(f"{type(e).__name__}: {e}")
             raise
 
     def _conn_from_toml(self) -> dict:
