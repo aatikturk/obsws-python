@@ -2,8 +2,8 @@ import base64
 import hashlib
 import json
 import logging
+import uuid
 from pathlib import Path
-from random import randint
 from typing import Optional
 
 import websocket
@@ -117,16 +117,22 @@ class ObsClient:
             )
 
     def req(self, req_type, req_data=None):
+        req_id = str(uuid.uuid4())
         payload = {
             "op": 6,
-            "d": {"requestType": req_type, "requestId": randint(1, 1000)},
+            "d": {"requestType": req_type, "requestId": req_id},
         }
         if req_data:
             payload["d"]["requestData"] = req_data
         self.logger.debug(f"Sending request {payload}")
         try:
             self.ws.send(json.dumps(payload))
-            response = json.loads(self.ws.recv())
+            while True:
+                response = json.loads(self.ws.recv())
+                # skip responses to earlier requests, such as one that timed out
+                if response["op"] == 7 and response["d"].get("requestId") == req_id:
+                    break
+                self.logger.debug(f"Discarding unrelated message {response}")
         except WebSocketTimeoutException as e:
             self.logger.exception(f"{type(e).__name__}: {e}")
             raise OBSSDKTimeoutError("Timeout while trying to send the request") from e
